@@ -254,7 +254,7 @@ describe('Codeshine', () => {
 
   it('should pass plugins in constructor', () => {
     let initCalled = false;
-    const codeshine = new Codeshine({
+    const _codeshine = new Codeshine({
       plugins: [
         {
           name: 'constructor-plugin',
@@ -312,7 +312,7 @@ describe('Codeshine', () => {
     let renderCalled = false;
     codeshine.use({
       name: 'render-plugin',
-      onBeforeRender: (tokens, options) => {
+      onBeforeRender: (tokens, _options) => {
         renderCalled = true;
         return tokens;
       },
@@ -488,7 +488,7 @@ describe('Codeshine', () => {
     const code = 'line1\nline2\nline3';
     const chunks: { html: string; progress: number }[] = [];
 
-    for await (const chunk of codeshine.highlightStream(code, {
+    for await (const _chunk of codeshine.highlightStream(code, {
       chunkSize: 1,
       onChunk: (html, progress) => {
         chunks.push({ html, progress });

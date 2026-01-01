@@ -4,7 +4,7 @@
 
 import type { Token, TokenType, TokenizerState, TokenizeResult } from './types.js';
 import type { LanguageDefinition, StringDefinition } from '../languages/types.js';
-import { escapeRegExp } from '../utils/escape.js';
+import { escapeRegExp as _escapeRegExp } from '../utils/escape.js';
 
 /**
  * Default tokenizer state

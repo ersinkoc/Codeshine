@@ -156,13 +156,17 @@ function applyRangeHighlight(
 ): string {
   // This is a simplified implementation
   // A full implementation would need to track positions through HTML
-  const rangeClass = range.className ?? `${PREFIX}-range-highlighted`;
-  const rangeStyle = range.style ? ` style="${range.style}"` : '';
+  const _rangeClass = range.className ?? `${PREFIX}-range-highlighted`;
+  const _rangeStyle = range.style ? ` style="${range.style}"` : '';
 
   // For now, return as-is if range is out of bounds
   if (range.start < 0 || range.end > plainContent.length) {
     return html;
   }
+
+  // TODO: Implement proper range highlighting through HTML
+  void _rangeClass;
+  void _rangeStyle;
 
   return html;
 }

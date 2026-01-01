@@ -251,7 +251,7 @@ describe('createTransformerPipeline', () => {
     pipeline.add({
       name: 'wrap',
       token: (token) => [
-        { ...token, type: 'wrapped' as any },
+        { ...token, type: 'wrapped' as unknown as Token['type'] },
       ],
     });
 

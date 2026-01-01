@@ -28,7 +28,7 @@ describe('highlightStream', () => {
     const code = 'line1\nline2\nline3';
     const onChunk = vi.fn();
 
-    for await (const _ of highlightStream(code, {
+    for await (const _chunk of highlightStream(code, {
       language: 'javascript',
       chunkSize: 1,
       onChunk,
@@ -43,10 +43,10 @@ describe('highlightStream', () => {
     const code = 'line1\nline2\nline3\nline4';
     const progressValues: number[] = [];
 
-    for await (const _ of highlightStream(code, {
+    for await (const _chunk of highlightStream(code, {
       language: 'javascript',
       chunkSize: 1,
-      onChunk: (_, progress) => {
+      onChunk: (_html, progress) => {
         progressValues.push(progress);
       },
     })) {
@@ -166,7 +166,7 @@ describe('createStreamingHighlighter', () => {
     });
     const code = 'line1\nline2';
 
-    for await (const _ of streamer.highlight(code)) {
+    for await (const _chunk of streamer.highlight(code)) {
       // consume
     }
 

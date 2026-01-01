@@ -11,7 +11,7 @@ import type {
   CodeshineInstance,
 } from './types.js';
 import type { LanguageDefinition } from '../languages/types.js';
-import { highlight, highlightAsync, resolveTheme } from './highlighter.js';
+import { highlight as _highlight, highlightAsync as _highlightAsync, resolveTheme as _resolveTheme } from './highlighter.js';
 import { tokenize } from './tokenizer.js';
 import { parseTokensToLines } from './parser.js';
 import { render } from './renderer.js';
