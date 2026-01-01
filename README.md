@@ -1,40 +1,100 @@
-# @oxog/codeshine
+<p align="center">
+  <img src="https://codeshine.oxog.dev/logo.svg" alt="Codeshine Logo" width="120" height="120">
+</p>
 
-Zero-dependency syntax highlighter for the modern web.
+<h1 align="center">Codeshine</h1>
 
-[![npm version](https://img.shields.io/npm/v/@oxog/codeshine.svg)](https://www.npmjs.com/package/@oxog/codeshine)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  <strong>The ultimate syntax highlighter - beautiful code, zero compromises</strong>
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@oxog/codeshine"><img src="https://img.shields.io/npm/v/@oxog/codeshine.svg?style=flat-square&color=blue" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/@oxog/codeshine"><img src="https://img.shields.io/npm/dm/@oxog/codeshine.svg?style=flat-square&color=green" alt="npm downloads"></a>
+  <a href="https://github.com/ersinkoc/codeshine/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="license"></a>
+  <a href="https://bundlephobia.com/package/@oxog/codeshine"><img src="https://img.shields.io/bundlephobia/minzip/@oxog/codeshine?style=flat-square&color=orange" alt="bundle size"></a>
+  <img src="https://img.shields.io/badge/dependencies-0-brightgreen?style=flat-square" alt="zero dependencies">
+  <a href="https://github.com/ersinkoc/codeshine/actions"><img src="https://img.shields.io/github/actions/workflow/status/ersinkoc/codeshine/ci.yml?style=flat-square" alt="build status"></a>
+</p>
+
+<p align="center">
+  <a href="https://codeshine.oxog.dev">Documentation</a> |
+  <a href="https://codeshine.oxog.dev/playground">Playground</a> |
+  <a href="https://github.com/ersinkoc/codeshine/blob/main/CHANGELOG.md">Changelog</a>
+</p>
+
+---
+
+## Why Codeshine?
+
+| Feature | Codeshine | Prism | Highlight.js | Shiki |
+|---------|:---------:|:-----:|:------------:|:-----:|
+| Zero Dependencies | ✅ | ❌ | ✅ | ❌ |
+| TypeScript Native | ✅ | ❌ | ❌ | ✅ |
+| Bundle Size (min+gzip) | ~25KB | ~15KB | ~35KB | ~200KB+ |
+| React/Vue/Svelte | ✅ | ❌ | ❌ | ✅ |
+| Line Highlighting | ✅ | Plugin | ❌ | ✅ |
+| Streaming | ✅ | ❌ | ❌ | ❌ |
+| Diff View | ✅ | ❌ | ❌ | ✅ |
+| Auto Detection | ✅ | ✅ | ✅ | ❌ |
 
 ## Features
 
 - **Zero Dependencies** - No external dependencies, pure TypeScript
 - **45+ Languages** - JavaScript, TypeScript, Python, Rust, Go, and many more
-- **15+ Themes** - VS Code Dark/Light, Dracula, Nord, One Dark, GitHub, and more
+- **14 Themes** - VS Code, Dracula, Nord, One Dark, GitHub, Tokyo Night, and more
+- **Framework Support** - React, Vue 3, Svelte components included
 - **Rich Features** - Line numbers, line highlighting, diff view, word highlighting
-- **Streaming Support** - Progressive rendering for large files
-- **React Integration** - Ready-to-use React components
-- **Plugin System** - Extensible with custom plugins
+- **Streaming** - Progressive rendering for large files
+- **CDN Ready** - Use directly in browser via unpkg/jsdelivr
+- **Plugin System** - Extensible with custom transformers
 - **Auto Detection** - Automatic language detection
-- **TypeScript First** - Full type safety
-
-## Documentation
-
-**[Full Documentation](https://codeshine.oxog.dev)**
+- **TypeScript First** - Full type safety with strict mode
 
 ## Installation
 
 ```bash
+# npm
 npm install @oxog/codeshine
+
+# pnpm
+pnpm add @oxog/codeshine
+
+# yarn
+yarn add @oxog/codeshine
+
+# bun
+bun add @oxog/codeshine
+```
+
+### CDN Usage
+
+```html
+<!-- ESM (recommended) -->
+<script type="module">
+  import { highlight } from 'https://unpkg.com/@oxog/codeshine/dist/browser/codeshine.esm.min.js';
+
+  document.getElementById('code').innerHTML = highlight('const x = 1;', {
+    language: 'javascript'
+  });
+</script>
+
+<!-- IIFE (for older browsers) -->
+<script src="https://unpkg.com/@oxog/codeshine/dist/browser/codeshine.iife.min.js"></script>
+<script>
+  const { highlight } = Codeshine;
+  document.getElementById('code').innerHTML = highlight('const x = 1;', {
+    language: 'javascript'
+  });
+</script>
 ```
 
 ## Quick Start
 
 ```javascript
-import { Codeshine } from '@oxog/codeshine';
+import { highlight } from '@oxog/codeshine';
 
-const codeshine = new Codeshine();
-
-const html = codeshine.highlight(`
+const html = highlight(`
 function greet(name) {
   return \`Hello, \${name}!\`;
 }
@@ -46,55 +106,126 @@ document.getElementById('code').innerHTML = html;
 ## With Options
 
 ```javascript
-const html = codeshine.highlight(code, {
+import { highlight, themes } from '@oxog/codeshine';
+
+const html = highlight(code, {
   language: 'typescript',
+  theme: themes.dracula,
   lineNumbers: true,
   highlightLines: [2, 3],
   copyButton: true,
-  showLanguage: true,
+  showLanguageBadge: true,
   filename: 'example.ts'
 });
 ```
 
-## Themes
-
-```javascript
-import { Codeshine, themes } from '@oxog/codeshine';
-
-const codeshine = new Codeshine({
-  theme: themes.dracula
-});
-```
-
-### Available Themes
-
-**Dark:** `vsDark`, `dracula`, `oneDark`, `github`, `tokyoNight`, `nord`, `nightOwl`, `synthwave`, `monokai`
-
-**Light:** `vsLight`, `githubLight`, `oneLight`, `solarizedLight`, `catppuccinLatte`
-
-## React
+## React Integration
 
 ```tsx
-import { CodeBlock } from '@oxog/codeshine/react';
+import { CodeBlock, useCodeshine } from '@oxog/codeshine/react';
 
+// Simple usage
 function App() {
   return (
     <CodeBlock
       code={`console.log('Hello!');`}
       language="javascript"
-      lineNumbers
       theme="dracula"
+      lineNumbers
       copyButton
     />
   );
 }
+
+// With hook
+function Editor() {
+  const { highlight, setTheme, theme } = useCodeshine('github-dark');
+
+  return (
+    <div dangerouslySetInnerHTML={{ __html: highlight(code, { language: 'js' }) }} />
+  );
+}
+```
+
+## Vue 3 Integration
+
+```vue
+<script setup>
+import { CodeBlock, useCodeshine } from '@oxog/codeshine/vue';
+
+const code = `const x = 1;`;
+</script>
+
+<template>
+  <CodeBlock
+    :code="code"
+    language="javascript"
+    theme="dracula"
+    :line-numbers="true"
+  />
+</template>
+```
+
+## Svelte Integration
+
+```svelte
+<script>
+  import { CodeBlock } from '@oxog/codeshine/svelte';
+
+  const code = `const x = 1;`;
+</script>
+
+<CodeBlock
+  {code}
+  language="javascript"
+  theme="dracula"
+  lineNumbers
+/>
+```
+
+## Themes
+
+### Dark Themes
+`github-dark` | `dracula` | `one-dark` | `nord` | `tokyo-night` | `monokai` | `vs-dark` | `catppuccin-mocha` | `high-contrast-dark`
+
+### Light Themes
+`github-light` | `one-light` | `solarized-light` | `vs-light` | `catppuccin-latte` | `high-contrast-light`
+
+```javascript
+import { themes, Codeshine } from '@oxog/codeshine';
+
+// Use built-in theme
+const codeshine = new Codeshine({
+  theme: themes.tokyoNight
+});
+
+// Or by name
+const html = highlight(code, {
+  language: 'js',
+  theme: 'tokyo-night'
+});
 ```
 
 ## Supported Languages
 
-JavaScript, TypeScript, JSX, TSX, Python, Java, C, C++, C#, Go, Rust, Ruby, PHP, Swift, Kotlin, Zig, Elixir, Scala, Haskell, Clojure, F#, OCaml, Erlang, Julia, R, Dart, Lua, Perl, HTML, CSS, JSON, YAML, TOML, XML, Markdown, SQL, GraphQL, Shell, PowerShell, Dockerfile, Makefile, and more.
+<details>
+<summary><strong>45+ Languages Supported</strong></summary>
 
-## Diff View
+**Tier 1 (Core):** JavaScript, TypeScript, JSX, TSX, HTML, CSS, JSON, Markdown
+
+**Tier 2 (Popular):** Python, Java, C, C++, C#, Go, Rust, Ruby, PHP, Swift, Kotlin
+
+**Tier 3 (Web/Config):** Bash, GraphQL, PowerShell, SQL, TOML, XML, YAML
+
+**Tier 4 (Data):** CSV, Diff, JSON5, Regex
+
+**Tier 5 (Extended):** Lua, Dockerfile, Perl, R, Scala, Haskell, Elixir, Clojure, F#, Dart, Zig, Nim, and more
+
+</details>
+
+## Advanced Features
+
+### Diff View
 
 ```javascript
 const code = `
@@ -104,49 +235,88 @@ function add(a, b) {
 }
 `;
 
-const html = codeshine.highlight(code, {
+const html = highlight(code, {
   language: 'javascript',
   diff: true
 });
 ```
 
-## Line Highlighting
+### Line Highlighting & Focus
 
 ```javascript
-const html = codeshine.highlight(code, {
+const html = highlight(code, {
   language: 'python',
-  highlightLines: [1, 3, '5-7'], // Lines 1, 3, and 5-7
-  focusLines: [3, 4, 5], // Dim everything except these lines
+  highlightLines: [1, 3, '5-7'],
+  focusLines: [3, 4, 5], // Dim everything except these
 });
 ```
 
-## Streaming
+### Streaming (Large Files)
 
 ```javascript
-import { createStream } from '@oxog/codeshine';
+import { createHighlightStream } from '@oxog/codeshine';
 
-const stream = createStream({
+for await (const chunk of createHighlightStream(largeCode, {
   language: 'javascript',
-  chunkSize: 100,
-  onChunk: (html, progress) => {
-    container.innerHTML += html;
-  },
-  onComplete: () => console.log('Done!')
-});
-
-stream.write(largeFileContent);
-stream.end();
+  chunkSize: 50
+})) {
+  container.innerHTML += chunk;
+}
 ```
 
-## Auto Detection
+### Auto Detection
 
 ```javascript
 import { detectLanguage } from '@oxog/codeshine';
 
-const language = detectLanguage(code);
-// Returns: 'python', 'javascript', etc.
+const result = detectLanguage(unknownCode);
+console.log(result); // { language: 'python', confidence: 0.95 }
 ```
+
+### Custom Plugins
+
+```javascript
+import { Codeshine } from '@oxog/codeshine';
+
+const codeshine = new Codeshine({
+  plugins: [{
+    name: 'my-plugin',
+    version: '1.0.0',
+    transformers: [{
+      name: 'add-links',
+      phase: 'post',
+      transform: (html) => html.replace(/TODO/g, '<mark>TODO</mark>')
+    }]
+  }]
+});
+```
+
+## Bundle Size
+
+| Bundle | Size | Gzip |
+|--------|------|------|
+| ESM | 151 KB | 31 KB |
+| ESM (min) | 93 KB | 25 KB |
+| IIFE | 165 KB | 33 KB |
+| IIFE (min) | 94 KB | 25 KB |
+
+## Browser Support
+
+- Chrome 80+
+- Firefox 80+
+- Safari 14+
+- Edge 80+
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">
+  Made with love by <a href="https://github.com/ersinkoc">Ersin KOC</a>
+</p>

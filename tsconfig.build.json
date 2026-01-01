@@ -13,5 +13,5 @@
     "noUnusedParameters": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests", "website"]
+  "exclude": ["node_modules", "dist", "tests", "website", "src/renderers/vue", "src/renderers/svelte"]
 }

@@ -39,11 +39,12 @@ export default defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
       { text: 'API', link: '/api/' },
+      { text: 'Playground', link: '/playground' },
       { text: 'Themes', link: '/guide/themes' },
-      { text: 'Languages', link: '/guide/languages' },
       {
         text: 'v1.0.0',
         items: [
+          { text: 'Changelog', link: 'https://github.com/ersinkoc/codeshine/blob/main/CHANGELOG.md' },
           { text: 'GitHub', link: 'https://github.com/ersinkoc/codeshine' },
         ],
       },
