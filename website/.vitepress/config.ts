@@ -1,5 +1,8 @@
 import { defineConfig } from 'vitepress';
-import { Codeshine, themes } from '@oxog/codeshine';
+// Use relative path to dist for CI/CD compatibility
+// Path is relative to .vitepress/config.ts -> ../../dist
+import { Codeshine } from '../../dist/esm/core/engine.js';
+import { themes } from '../../dist/esm/themes/index.js';
 
 // Create Codeshine instance for syntax highlighting
 const codeshine = new Codeshine({

@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'website/**'
+      - 'src/**'
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
@@ -32,12 +33,19 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: website/package-lock.json
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Install dependencies
+      # Build main Codeshine package first (creates dist/)
+      - name: Install main dependencies
+        run: npm ci
+
+      - name: Build Codeshine
+        run: npm run build
+
+      # Build website (uses ../dist/esm for highlighting)
+      - name: Install website dependencies
         run: npm ci
         working-directory: website
 
