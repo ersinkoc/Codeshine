@@ -8,6 +8,9 @@
     "build": "vitepress build",
     "preview": "vitepress preview"
   },
+  "dependencies": {
+    "@oxog/codeshine": "file:.."
+  },
   "devDependencies": {
     "vitepress": "^1.0.0"
   }

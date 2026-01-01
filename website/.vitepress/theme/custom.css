@@ -1,0 +1,35 @@
+/* Codeshine custom styles for VitePress */
+
+:root {
+  --vp-code-font-size: 14px;
+  --vp-code-line-height: 1.6;
+}
+
+/* Override default code block styles */
+.vp-doc div[class*='language-'] {
+  border-radius: 8px;
+  background-color: #1e1e1e;
+}
+
+.vp-doc div[class*='language-'] code {
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* Hero section styling */
+.VPHero .name {
+  background: linear-gradient(120deg, #bd34fe 30%, #41d1ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Feature cards */
+.VPFeature {
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.VPFeature:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}

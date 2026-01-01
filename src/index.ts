@@ -105,6 +105,7 @@ export {
   darkThemes,
   lightThemes,
   specialThemes,
+  themes,
   githubDark,
   githubLight,
   vscodeDark,

@@ -1,4 +1,10 @@
 import { defineConfig } from 'vitepress';
+import { Codeshine, themes } from '@oxog/codeshine';
+
+// Create Codeshine instance for syntax highlighting
+const codeshine = new Codeshine({
+  theme: themes.vsDark,
+});
 
 export default defineConfig({
   title: 'Codeshine',
@@ -9,6 +15,20 @@ export default defineConfig({
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
     ['meta', { name: 'theme-color', content: '#646cff' }],
   ],
+
+  markdown: {
+    // Use Codeshine for code highlighting
+    highlight: (code, lang) => {
+      try {
+        return codeshine.highlight(code, {
+          language: lang || 'text',
+          lineNumbers: false,
+        });
+      } catch {
+        return `<pre><code>${code}</code></pre>`;
+      }
+    },
+  },
 
   themeConfig: {
     logo: '/logo.svg',
@@ -21,7 +41,7 @@ export default defineConfig({
       {
         text: 'v1.0.0',
         items: [
-          { text: 'GitHub', link: 'https://github.com/nicosxt/codeshine' },
+          { text: 'GitHub', link: 'https://github.com/ersinkoc/codeshine' },
         ],
       },
     ],
@@ -55,7 +75,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/nicosxt/codeshine' },
+      { icon: 'github', link: 'https://github.com/ersinkoc/codeshine' },
       { icon: 'npm', link: 'https://www.npmjs.com/package/@oxog/codeshine' },
     ],
 

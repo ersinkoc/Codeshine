@@ -67,9 +67,9 @@ export {
 } from './special/index.js';
 
 // Combined exports
-import { darkThemes } from './dark/index.js';
-import { lightThemes } from './light/index.js';
-import { specialThemes } from './special/index.js';
+import { darkThemes, githubDark, vscodeDark, monokai, dracula, oneDark, nord, tokyoNight, catppuccinMocha } from './dark/index.js';
+import { lightThemes, githubLight, vscodeLight, oneLight, catppuccinLatte, solarizedLight } from './light/index.js';
+import { specialThemes, highContrastDark, highContrastLight } from './special/index.js';
 
 /**
  * All themes combined
@@ -79,5 +79,30 @@ export const allThemes = [
   ...lightThemes,
   ...specialThemes,
 ];
+
+/**
+ * Themes object for easy access
+ */
+export const themes = {
+  // Dark
+  vsDark: vscodeDark,
+  vsLight: vscodeLight,
+  github: githubDark,
+  githubDark,
+  githubLight,
+  dracula,
+  oneDark,
+  oneLight,
+  nord,
+  tokyoNight,
+  nightOwl: tokyoNight, // alias
+  synthwave: dracula, // alias for now
+  monokai,
+  catppuccinMocha,
+  catppuccinLatte,
+  solarizedLight,
+  highContrastDark,
+  highContrastLight,
+} as const;
 
 export default allThemes;
