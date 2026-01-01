@@ -1,0 +1,110 @@
+{
+  "name": "@oxog/codeshine",
+  "version": "1.0.0",
+  "description": "The ultimate syntax highlighter — beautiful code, zero compromises",
+  "author": "Ersin Koc",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ersinkoc/codeshine.git"
+  },
+  "homepage": "https://codeshine.oxog.dev",
+  "keywords": [
+    "syntax-highlighting",
+    "code-highlighting",
+    "highlighter",
+    "prism",
+    "highlight",
+    "code",
+    "syntax",
+    "react",
+    "typescript",
+    "zero-dependency"
+  ],
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    },
+    "./react": {
+      "import": "./dist/esm/renderers/react/index.js",
+      "require": "./dist/cjs/renderers/react/index.js",
+      "types": "./dist/types/renderers/react/index.d.ts"
+    },
+    "./languages": {
+      "import": "./dist/esm/languages/index.js",
+      "require": "./dist/cjs/languages/index.js",
+      "types": "./dist/types/languages/index.d.ts"
+    },
+    "./languages/*": {
+      "import": "./dist/esm/languages/*.js",
+      "require": "./dist/cjs/languages/*.js",
+      "types": "./dist/types/languages/*.d.ts"
+    },
+    "./themes": {
+      "import": "./dist/esm/themes/index.js",
+      "require": "./dist/cjs/themes/index.js",
+      "types": "./dist/types/themes/index.d.ts"
+    },
+    "./transformers": {
+      "import": "./dist/esm/plugins/transformer.js",
+      "require": "./dist/cjs/plugins/transformer.js",
+      "types": "./dist/types/plugins/transformer.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "dev": "vitest",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:types",
+    "build:esm": "tsc -p tsconfig.build.json --outDir dist/esm",
+    "build:cjs": "tsc -p tsconfig.cjs.json --outDir dist/cjs",
+    "build:types": "tsc -p tsconfig.build.json --outDir dist/types --declaration --emitDeclarationOnly",
+    "lint": "eslint src tests",
+    "format": "prettier --write .",
+    "prepublishOnly": "npm run lint && npm run test:coverage && npm run build",
+    "website:dev": "cd website && npm run dev",
+    "website:build": "cd website && npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vitest/coverage-v8": "^1.1.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  },
+  "peerDependencies": {
+    "react": ">=17.0.0",
+    "react-dom": ">=17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  }
+}
