@@ -280,6 +280,40 @@ describe('tokenizer edge cases', () => {
     expect(result3.state.inString).toBe(false);
   });
 
+  it('should handle escaped characters in multi-line string continuation', () => {
+    // Tests lines 164-167, 169-172 - escape handling in string continuation
+    const langWithEscape = {
+      name: 'escape-multiline-lang',
+      patterns: [],
+      strings: [
+        {
+          start: '"',
+          end: '"',
+          escape: '\\',
+          multiline: true,
+        },
+      ],
+    };
+
+    // Start a string that doesn't end on the first line
+    const result1 = tokenizeLine('"start', 1, langWithEscape);
+    expect(result1.state.inString).toBe(true);
+    expect(result1.state.stringDelimiter).toBe('"');
+
+    // Continue with escaped char and then end quote
+    const result2 = tokenizeLine('\\n more" rest', 2, langWithEscape, result1.state);
+    expect(result2.state.inString).toBe(false);
+    expect(result2.tokens.some(t => t.type === 'string')).toBe(true);
+  });
+
+  it('should handle block comment that ends on same line', () => {
+    // Tests lines 222-230, 237-238 - block comment found and ends on same line
+    const tokens = tokenize('/* comment */ const x = 1;', javascript);
+
+    expect(tokens.some(t => t.type === 'comment' && t.value === '/* comment */')).toBe(true);
+    expect(tokens.some(t => t.type === 'keyword' && t.value === 'const')).toBe(true);
+  });
+
   it('should handle string without closing', () => {
     const tokens = tokenize('const s = "unclosed', javascript);
 
@@ -351,5 +385,205 @@ describe('tokenizer edge cases', () => {
     const tokens = tokenize(code, javascript);
 
     expect(tokens.some(t => t.type === 'interpolation' || t.type === 'string')).toBe(true);
+  });
+
+  it('should handle deeply nested braces in interpolation', () => {
+    const code = 'const msg = `${foo({ bar: { baz: 1 } })}`;';
+    const tokens = tokenize(code, javascript);
+
+    expect(tokens.some(t => t.type === 'interpolation' || t.type === 'string')).toBe(true);
+  });
+
+  it('should handle standalone numbers', () => {
+    const code = '42 3.14 0xff 0b101 1e10';
+    const tokens = tokenize(code, javascript);
+
+    const numberTokens = tokens.filter(t => t.type === 'number');
+    expect(numberTokens.length).toBe(5);
+  });
+
+  it('should handle code without language keywords', () => {
+    const minimalLang = {
+      name: 'minimal',
+      patterns: [],
+    };
+    const tokens = tokenize('hello world', minimalLang);
+
+    expect(tokens.length).toBeGreaterThan(0);
+  });
+
+  it('should handle code with only operators', () => {
+    const tokens = tokenize('+ - * / = ==', javascript);
+
+    expect(tokens.some(t => t.type === 'operator')).toBe(true);
+  });
+
+  it('should handle nested interpolation with extra braces', () => {
+    // This tests the depth++ branch in nested interpolation handling
+    const code = 'const msg = `${obj.map(x => { return x; })}`;';
+    const tokens = tokenize(code, javascript);
+
+    expect(tokens.some(t => t.type === 'interpolation' || t.type === 'string')).toBe(true);
+  });
+
+  it('should tokenize function call followed by property', () => {
+    const code = 'myFunc().property';
+    const tokens = tokenize(code, javascript);
+
+    expect(tokens.some(t => t.type === 'function' && t.value === 'myFunc')).toBe(true);
+  });
+
+  it('should tokenize pure number expression', () => {
+    // Tests standalone number tokenization
+    const tokens = tokenize('12345', javascript);
+
+    expect(tokens.some(t => t.type === 'number' && t.value === '12345')).toBe(true);
+  });
+
+  it('should handle code starting with number', () => {
+    const tokens = tokenize('0xff + 10', javascript);
+
+    const numberTokens = tokens.filter(t => t.type === 'number');
+    expect(numberTokens.length).toBe(2);
+  });
+
+  it('should handle template literal with deeply nested braces in interpolation', () => {
+    // This specifically tests line 283 (depth++ for nested braces)
+    const code = 'const msg = `Result: ${fn({ a: { b: 1 } })}`;';
+    const tokens = tokenize(code, javascript);
+
+    expect(tokens.some(t => t.type === 'interpolation')).toBe(true);
+    expect(tokens.some(t => t.type === 'string')).toBe(true);
+  });
+
+  it('should handle nested object braces inside template interpolation', () => {
+    // Specifically tests the depth++ branch (line 282-283)
+    // The interpolation contains { which is not the closing }
+    const code = '`${{}}`';
+    const tokens = tokenize(code, javascript);
+
+    const interpToken = tokens.find(t => t.type === 'interpolation');
+    expect(interpToken).toBeDefined();
+    expect(interpToken?.value).toBe('${{}}');
+  });
+
+  it('should handle multiple levels of nested braces in interpolation', () => {
+    const code = '`${a ? { x: { y: 1 }} : {}}`';
+    const tokens = tokenize(code, javascript);
+
+    expect(tokens.some(t => t.type === 'interpolation')).toBe(true);
+  });
+
+  it('should break out of pattern loop after match', () => {
+    // Tests line 338 - matching a pattern and breaking
+    const langWithPattern = {
+      name: 'pattern-test',
+      patterns: [
+        { pattern: /SPECIAL_WORD/, type: 'keyword' as const },
+      ],
+    };
+    const tokens = tokenize('SPECIAL_WORD', langWithPattern);
+
+    expect(tokens.some(t => t.type === 'keyword' && t.value === 'SPECIAL_WORD')).toBe(true);
+  });
+
+  it('should detect function calls with parenthesis', () => {
+    // Tests line 354 specifically - function call detection
+    const tokens = tokenize('doSomething()', javascript);
+
+    expect(tokens.some(t => t.type === 'function' && t.value === 'doSomething')).toBe(true);
+  });
+
+  it('should tokenize number at start of expression without preceding code', () => {
+    // Tests lines 368-371 - number matching when it's the first thing
+    const tokens = tokenize('42.5', javascript);
+
+    expect(tokens.length).toBe(1);
+    expect(tokens[0].type).toBe('number');
+    expect(tokens[0].value).toBe('42.5');
+  });
+
+  it('should tokenize number after operator', () => {
+    // Another test for number branch
+    const tokens = tokenize('= 100', javascript);
+
+    expect(tokens.some(t => t.type === 'number' && t.value === '100')).toBe(true);
+  });
+
+  it('should detect function call without patterns', () => {
+    // Tests line 354 with minimal language to ensure code path is hit
+    const minimalLang = {
+      name: 'minimal-func',
+      patterns: [],
+      keywords: [], // No keywords, so word won't match as keyword
+    };
+    const tokens = tokenize('myFunc()', minimalLang);
+
+    expect(tokens.some(t => t.type === 'function' && t.value === 'myFunc')).toBe(true);
+  });
+
+  it('should tokenize number without patterns or keywords', () => {
+    // Tests lines 368-371 with minimal language
+    const minimalLang = {
+      name: 'minimal-num',
+      patterns: [],
+    };
+    const tokens = tokenize('123.456', minimalLang);
+
+    expect(tokens.some(t => t.type === 'number' && t.value === '123.456')).toBe(true);
+  });
+
+  it('should handle regex start string that does not end on line', () => {
+    // For regex starts, the stringDelimiter is empty so multi-line continuation
+    // won't work the same way - but we can still test the string detection
+    const langWithRegexStart = {
+      name: 'regex-multiline',
+      patterns: [],
+      strings: [
+        {
+          start: /r"/,
+          end: '"',
+          multiline: true,
+        },
+      ],
+    };
+
+    // Multi-line strings with regex starts complete on same line
+    const result = tokenizeLine('r"complete"', 1, langWithRegexStart);
+    expect(result.tokens.some(t => t.type === 'string')).toBe(true);
+  });
+
+  it('should handle string continuation with mismatched delimiter', () => {
+    // Tests line 155 - when continuing a string, but the delimiter doesn't match any string start
+    // This happens with regex starts since stringDelimiter becomes ''
+    const langWithMixedStrings = {
+      name: 'mixed-strings',
+      patterns: [],
+      strings: [
+        {
+          start: /r"/,  // Regex start - will set stringDelimiter to ''
+          end: '"',
+          multiline: true,
+        },
+        {
+          start: "'",  // String start
+          end: "'",
+          multiline: true,
+        },
+      ],
+    };
+
+    // Create a state that simulates being in a string with a delimiter that doesn't match
+    const continuationState = {
+      inString: true,
+      stringDelimiter: 'NONEXISTENT',  // This won't match any string definition
+      inComment: false,
+      commentType: undefined,
+    };
+
+    // This will trigger the find() to check all strings and return false for regex starts
+    const result = tokenizeLine('continued text"', 1, langWithMixedStrings, continuationState);
+    // The find() should fail and processing continues normally
+    expect(result.tokens.length).toBeGreaterThan(0);
   });
 });

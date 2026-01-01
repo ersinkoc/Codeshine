@@ -367,4 +367,18 @@ describe('language registry edge cases', () => {
     expect(registry.getNames()).toContain('javascript');
     expect(registry.getNames()).toContain('python');
   });
+
+  it('should use registry.get directly', async () => {
+    const { createLanguageRegistry } = await import('../../src/languages/registry.js');
+    const registry = createLanguageRegistry();
+    registry.register(javascript);
+
+    // Test direct get method
+    const lang = registry.get('javascript');
+    expect(lang?.name).toBe('javascript');
+
+    // Test get for non-existent language
+    const notFound = registry.get('non-existent');
+    expect(notFound).toBeUndefined();
+  });
 });

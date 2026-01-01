@@ -14,6 +14,7 @@ import {
   generateCSSString,
   injectThemeStyles,
   removeThemeStyles,
+  createThemeRegistry,
 } from '../../src/themes/index.js';
 import { githubDark } from '../../src/themes/dark/github-dark.js';
 import { githubLight } from '../../src/themes/light/github-light.js';
@@ -68,6 +69,32 @@ describe('defineTheme', () => {
   });
 });
 
+describe('defineTheme without colors', () => {
+  it('should use default dark colors when no colors provided', () => {
+    const theme = defineTheme({
+      name: 'minimal-dark',
+      type: 'dark',
+    });
+
+    expect(theme.name).toBe('minimal-dark');
+    expect(theme.type).toBe('dark');
+    expect(theme.colors).toBeDefined();
+    expect(theme.colors.background).toBe('#1e1e1e'); // default dark background
+  });
+
+  it('should use default light colors when no colors provided', () => {
+    const theme = defineTheme({
+      name: 'minimal-light',
+      type: 'light',
+    });
+
+    expect(theme.name).toBe('minimal-light');
+    expect(theme.type).toBe('light');
+    expect(theme.colors).toBeDefined();
+    expect(theme.colors.background).toBe('#ffffff'); // default light background
+  });
+});
+
 describe('extendTheme', () => {
   it('should extend an existing theme', () => {
     const extended = extendTheme(githubDark, {
@@ -81,6 +108,15 @@ describe('extendTheme', () => {
     expect(extended.colors.background).toBe('#000000');
     expect(extended.colors.foreground).toBe(githubDark.colors.foreground);
     expect(extended.type).toBe('dark');
+  });
+
+  it('should extend theme without overriding colors', () => {
+    const extended = extendTheme(githubDark, {
+      name: 'github-dark-renamed',
+    });
+
+    expect(extended.name).toBe('github-dark-renamed');
+    expect(extended.colors).toEqual(githubDark.colors);
   });
 
   it('should preserve base theme token colors', () => {
@@ -258,5 +294,30 @@ describe('built-in themes', () => {
         expect(theme.colors.tokens[token as keyof typeof theme.colors.tokens]).toBeDefined();
       }
     }
+  });
+});
+
+describe('createThemeRegistry', () => {
+  it('should get all themes from registry', () => {
+    const registry = createThemeRegistry();
+    const themeA = defineTheme({
+      name: 'theme-get-all-a',
+      type: 'dark',
+      colors: { background: '#000', foreground: '#fff', tokens: {} },
+    });
+    const themeB = defineTheme({
+      name: 'theme-get-all-b',
+      type: 'light',
+      colors: { background: '#fff', foreground: '#000', tokens: {} },
+    });
+
+    registry.register(themeA);
+    registry.register(themeB);
+
+    const allThemes = registry.getAll();
+
+    expect(allThemes).toHaveLength(2);
+    expect(allThemes).toContain(themeA);
+    expect(allThemes).toContain(themeB);
   });
 });

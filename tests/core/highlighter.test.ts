@@ -183,3 +183,95 @@ describe('highlightAsync', () => {
     expect(html).toContain('const');
   });
 });
+
+describe('theme resolution', () => {
+  it('should fallback to default theme for unknown theme string', () => {
+    const code = 'const x = 1;';
+    const html = highlight(code, {
+      language: 'javascript',
+      theme: 'non-existent-theme-xyz',
+    });
+
+    // Should still render with default theme (githubDark fallback)
+    expect(html).toContain('cs-codeblock');
+    expect(html).toContain('background');
+  });
+
+  it('should use theme object directly', () => {
+    const code = 'const x = 1;';
+    const customTheme = {
+      name: 'custom',
+      type: 'dark' as const,
+      colors: {
+        background: '#123456',
+        foreground: '#ffffff',
+        lineNumber: '#888888',
+        lineNumberActive: '#ffffff',
+        lineHighlight: 'rgba(255,255,255,0.1)',
+        selection: 'rgba(255,255,255,0.2)',
+        cursor: '#ffffff',
+        gutterBackground: '#123456',
+        gutterBorder: '#123456',
+        diffAddedBackground: 'rgba(0,255,0,0.1)',
+        diffAddedText: '#00ff00',
+        diffRemovedBackground: 'rgba(255,0,0,0.1)',
+        diffRemovedText: '#ff0000',
+        diffModifiedBackground: 'rgba(255,255,0,0.1)',
+        diffModifiedText: '#ffff00',
+        focusDimmed: 'rgba(255,255,255,0.4)',
+        wordHighlight: 'rgba(255,255,0,0.3)',
+        border: '#333333',
+        badgeBackground: '#333333',
+        badgeText: '#ffffff',
+        buttonBackground: '#333333',
+        buttonText: '#ffffff',
+        buttonHover: '#444444',
+        scrollbar: 'rgba(255,255,255,0.2)',
+        scrollbarHover: 'rgba(255,255,255,0.3)',
+        tokens: {
+          keyword: '#ff0000',
+          string: '#00ff00',
+          number: '#0000ff',
+          comment: '#888888',
+          operator: '#ffffff',
+          punctuation: '#ffffff',
+          function: '#ffff00',
+          variable: '#00ffff',
+          class: '#ff00ff',
+          type: '#ff00ff',
+          constant: '#0000ff',
+          property: '#00ffff',
+          attribute: '#00ffff',
+          tag: '#ff0000',
+          regexp: '#00ff00',
+          escape: '#ffff00',
+          interpolation: '#ff0000',
+          meta: '#ff00ff',
+          invalid: '#ff0000',
+        },
+      },
+      fonts: {
+        family: 'monospace',
+        size: '14px',
+        lineHeight: 1.5,
+        weight: 400,
+      },
+      spacing: {
+        padding: '16px',
+        lineNumberWidth: '40px',
+        gutterPadding: '8px',
+      },
+      borders: {
+        radius: '8px',
+        width: '1px',
+      },
+    };
+
+    const html = highlight(code, {
+      language: 'javascript',
+      theme: customTheme,
+    });
+
+    expect(html).toContain('#123456');
+  });
+});

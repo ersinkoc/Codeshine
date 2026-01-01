@@ -47,6 +47,21 @@ describe('createPluginRegistry', () => {
     expect(names).toContain('plugin-a');
     expect(names).toContain('plugin-b');
   });
+
+  it('should get all plugins from registry', () => {
+    const registry = createPluginRegistry();
+    const pluginA: CodeshinePlugin = { name: 'plugin-get-all-a', version: '1.0.0' };
+    const pluginB: CodeshinePlugin = { name: 'plugin-get-all-b', version: '2.0.0' };
+
+    registry.register(pluginA);
+    registry.register(pluginB);
+
+    const allPlugins = registry.getAll();
+
+    expect(allPlugins).toHaveLength(2);
+    expect(allPlugins).toContain(pluginA);
+    expect(allPlugins).toContain(pluginB);
+  });
 });
 
 describe('global plugin registry', () => {
