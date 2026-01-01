@@ -249,7 +249,7 @@ function getLanguageDisplayName(language: string): string {
  */
 export function render(lines: LineData[], options: RenderOptions): string {
   const header = renderHeader(options);
-  const codeLines = lines.map((line) => renderLine(line, options)).join('\n');
+  const codeLines = lines.map((line) => renderLine(line, options)).join('');
 
   const wrapperClasses = classnames(
     `${PREFIX}-codeblock`,

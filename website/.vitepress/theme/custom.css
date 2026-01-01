@@ -29,6 +29,27 @@
 
 .cs-line {
   display: block;
+  min-height: 1.5em;
+}
+
+/* Ensure code element respects block layout */
+.cs-code {
+  display: block;
+}
+
+/* Remove VitePress default code styling that might interfere */
+.vp-doc .cs-codeblock,
+.vp-doc pre.cs-codeblock {
+  margin: 0;
+  white-space: pre;
+}
+
+.vp-doc .cs-codeblock code {
+  display: block;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  line-height: inherit;
 }
 
 .cs-keyword { color: #569cd6; }
