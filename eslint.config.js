@@ -37,6 +37,6 @@ export default [
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', 'website/', '*.config.*', 'src/renderers/react/**', 'src/themes/css-vars.ts'],
+    ignores: ['dist/', 'node_modules/', 'website/', '*.config.*', 'src/renderers/react/**', 'src/renderers/vue/**', 'src/renderers/svelte/**', 'src/themes/css-vars.ts'],
   },
 ];
