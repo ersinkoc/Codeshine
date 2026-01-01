@@ -15,6 +15,43 @@
   font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
 }
 
+/* Codeshine Token Colors (VS Dark Theme) */
+.cs-codeblock {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.cs-line {
+  display: block;
+}
+
+.cs-keyword { color: #569cd6; }
+.cs-string { color: #ce9178; }
+.cs-number { color: #b5cea8; }
+.cs-comment { color: #6a9955; font-style: italic; }
+.cs-function { color: #dcdcaa; }
+.cs-variable { color: #9cdcfe; }
+.cs-operator { color: #d4d4d4; }
+.cs-punctuation { color: #d4d4d4; }
+.cs-class { color: #4ec9b0; }
+.cs-type { color: #4ec9b0; }
+.cs-constant { color: #4fc1ff; }
+.cs-property { color: #9cdcfe; }
+.cs-attribute { color: #9cdcfe; }
+.cs-tag { color: #569cd6; }
+.cs-regexp { color: #d16969; }
+.cs-escape { color: #d7ba7d; }
+.cs-interpolation { color: #569cd6; }
+.cs-meta { color: #c586c0; }
+.cs-plain { color: #d4d4d4; }
+.cs-code { color: #d4d4d4; }
+
 /* Hero section styling */
 .VPHero .name {
   background: linear-gradient(120deg, #bd34fe 30%, #41d1ff);
