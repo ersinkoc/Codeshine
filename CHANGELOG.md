@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-01-01
+
+### Added
+- Browser/CDN builds (ESM + IIFE) via unpkg and jsdelivr
+- Interactive playground page on documentation site
+- Performance benchmark script (`npm run benchmark`)
+- CI/CD workflows for testing and automated releases
+
+### Changed
+- Improved README with comparison table and badges
+- Added CDN usage examples to documentation
+
+### Fixed
+- Line spacing issue in rendered code blocks
+
 ## [1.0.0] - 2026-01-01
 
 ### Added
@@ -55,12 +70,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Vue 3 component
-- Svelte component
-- Browser/CDN build (UMD)
-- Interactive playground
-- Performance benchmarks
+- Vue 3 component (official)
+- Svelte component (official)
 - VS Code extension
+- More themes
 
+[1.0.1]: https://github.com/ersinkoc/codeshine/releases/tag/v1.0.1
 [1.0.0]: https://github.com/ersinkoc/codeshine/releases/tag/v1.0.0
-[Unreleased]: https://github.com/ersinkoc/codeshine/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/ersinkoc/codeshine/compare/v1.0.1...HEAD
