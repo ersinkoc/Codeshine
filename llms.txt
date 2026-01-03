@@ -1,0 +1,336 @@
+# Codeshine
+
+> The ultimate syntax highlighter — beautiful code, zero compromises
+
+Codeshine is a modern, zero-dependency TypeScript-based syntax highlighter library designed for web applications. It provides production-grade code highlighting with minimal overhead, extensive language support, and first-class framework integration.
+
+## Project Overview
+
+- **Version:** 1.0.1
+- **License:** MIT
+- **Author:** Ersin KOC
+- **Repository:** https://github.com/ersinkoc/codeshine
+- **Website:** https://codeshine.oxog.dev
+- **Package:** @oxog/codeshine
+
+## Key Features
+
+- **Zero Dependencies** - Pure TypeScript, no external libraries
+- **45+ Languages** - Organized in 5 tiers from core to extended
+- **14 Themes** - 9 dark, 5 light, including VS Code, GitHub, Dracula, Tokyo Night
+- **Framework Support** - React, Vue 3, and Svelte components included
+- **Advanced Rendering** - Line numbers, line highlighting, focus mode, diff view, word highlighting
+- **Streaming Support** - Progressive rendering for large files
+- **Auto Detection** - Automatic language detection with confidence scoring
+- **Plugin System** - Extensible with custom transformers
+- **CDN Ready** - Available via unpkg/jsdelivr for direct browser use
+- **TypeScript Native** - Full type safety with strict mode
+
+## Architecture
+
+The codebase follows a modular architecture with clear separation of concerns:
+
+```
+src/
+├── core/           # Core highlighting engine (tokenizer, parser, renderer)
+├── languages/      # Language definitions organized in 5 tiers
+├── themes/         # Theme definitions (dark, light, special)
+├── renderers/      # Output renderers (React, Vue, Svelte, HTML)
+├── plugins/        # Plugin system with transformer pipeline
+├── features/       # Optional features (line numbers)
+└── utils/          # Utility functions
+```
+
+## Core Components
+
+### Highlighting Pipeline
+
+1. **Input** - Code string + options
+2. **Language Resolution** - From string or auto-detect
+3. **Tokenization** - Matches patterns, keywords, strings, comments
+4. **Parsing** - Flat tokens → Line-based structure
+5. **Plugin Processing** - Pre/post transformations
+6. **Rendering** - Tokens → HTML with theme colors
+7. **Output** - HTML string
+
+### Token Types
+
+keyword, string, number, comment, operator, punctuation, function, variable, class, type, constant, property, attribute, tag, regexp, escape, interpolation, meta, invalid, plain
+
+## API Reference
+
+### Basic Usage
+
+```typescript
+import { highlight } from '@oxog/codeshine';
+
+const html = highlight(code, {
+  language: 'javascript',
+  theme: 'dracula',
+  lineNumbers: true,
+  highlightLines: [2, 3, '5-7']
+});
+```
+
+### Reusable Instance
+
+```typescript
+import { Codeshine } from '@oxog/codeshine';
+
+const codeshine = new Codeshine({
+  theme: 'github-dark',
+  lineNumbers: true
+});
+
+const html = codeshine.highlight(code, { language: 'typescript' });
+```
+
+### React Integration
+
+```typescript
+import { CodeBlock, useCodeshine } from '@oxog/codeshine/react';
+
+<CodeBlock code={code} language="javascript" theme="dracula" lineNumbers />
+
+const { highlight, setTheme } = useCodeshine('github-dark');
+```
+
+### Streaming Large Files
+
+```typescript
+import { highlightStream } from '@oxog/codeshine';
+
+for await (const chunk of highlightStream(largeCode, {
+  language: 'javascript',
+  chunkSize: 100
+})) {
+  container.innerHTML += chunk;
+}
+```
+
+### Auto Detection
+
+```typescript
+import { detectLanguage } from '@oxog/codeshine';
+
+const result = detectLanguage(unknownCode);
+// { language: 'python', confidence: 0.95 }
+```
+
+### Plugin System
+
+```typescript
+const codeshine = new Codeshine();
+codeshine.use({
+  name: 'my-plugin',
+  onBeforeHighlight(code, options) { /* ... */ },
+  onAfterTokenize(tokens) { /* ... */ },
+  onAfterRender(html) { /* ... */ }
+});
+```
+
+## Configuration Options
+
+### HighlightOptions
+
+| Option | Type | Description |
+|--------|------|-------------|
+| language | string | Language identifier |
+| autoDetect | boolean | Enable language auto-detection |
+| theme | string \| Theme | Theme name or object |
+| lineNumbers | boolean | Show line numbers |
+| startLine | number | Starting line number |
+| highlightLines | LineRange[] | Lines to highlight |
+| focusLines | LineRange[] | Lines to focus (dim others) |
+| diffLines | object | Diff markers (added, removed, modified) |
+| highlightWords | string[] | Words to highlight |
+| showLanguageBadge | boolean | Show language badge |
+| copyButton | boolean | Show copy button |
+| filename | string | Display filename |
+| wrapLines | boolean | Enable line wrapping |
+| maxHeight | string | Maximum container height |
+| collapsible | boolean | Enable collapse/expand |
+| tabSize | number | Tab width in spaces |
+| transformers | Transformer[] | Custom transformers |
+
+## Language Tiers
+
+- **Tier 1 (Core):** JavaScript, TypeScript, JSX, TSX, HTML, CSS, JSON, Markdown
+- **Tier 2 (Popular):** Python, Java, C, C++, C#, Go, Rust, Ruby, PHP, Swift, Kotlin
+- **Tier 3 (Web/Config):** Bash, GraphQL, PowerShell, SQL, TOML, XML, YAML
+- **Tier 4 (Data):** CSV, Diff, JSON5, Regex
+- **Tier 5 (Extended):** Lua, Dockerfile, Perl, R, Scala, Haskell, Elixir, etc.
+
+## Themes
+
+### Dark Themes
+- dracula
+- github-dark
+- vscode-dark
+- monokai
+- nord
+- one-dark
+- tokyo-night
+- catppuccin
+- ayu-dark
+
+### Light Themes
+- github-light
+- vscode-light
+- one-light
+- solarized-light
+- ayu-light
+
+### Special
+- high-contrast (accessibility)
+
+## File Structure
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| src/index.ts | Main export file |
+| src/core/engine.ts | Codeshine class for reusable instances |
+| src/core/highlighter.ts | Core highlight() function |
+| src/core/tokenizer.ts | Hybrid tokenization engine |
+| src/core/parser.ts | Token stream parser |
+| src/core/renderer.ts | Token to HTML renderer |
+| src/core/detector.ts | Language auto-detection |
+| src/core/streaming.ts | Large file streaming |
+| src/languages/registry.ts | Language registry |
+| src/themes/registry.ts | Theme registry |
+| src/plugins/transformer.ts | Transformer pipeline |
+
+### Language Definition Structure
+
+```typescript
+interface LanguageDefinition {
+  name: string;
+  aliases?: string[];
+  extensions?: string[];
+  keywords?: string[];
+  typeKeywords?: string[];
+  constants?: string[];
+  patterns: TokenPattern[];
+  strings?: StringDefinition[];
+  comments?: CommentDefinition;
+  brackets?: BracketPair[];
+  embeddedLanguages?: EmbeddedLanguage[];
+}
+```
+
+### Theme Definition Structure
+
+```typescript
+interface Theme {
+  name: string;
+  type: 'dark' | 'light';
+  colors: {
+    background: string;
+    foreground: string;
+    // Token colors
+    keyword: string;
+    string: string;
+    number: string;
+    comment: string;
+    function: string;
+    // ... more token types
+  };
+  ui?: {
+    gutterBackground?: string;
+    lineHighlight?: string;
+    // ... more UI colors
+  };
+}
+```
+
+## Built-in Transformers
+
+- `lineLinksTransformer` - Adds ID attributes to lines
+- `removeCommentsTransformer` - Removes comment tokens
+- `normalizeWhitespaceTransformer` - Normalizes whitespace
+- `trimTrailingWhitespaceTransformer` - Removes trailing spaces
+
+## Distribution Formats
+
+| Format | Path | Description |
+|--------|------|-------------|
+| ESM | dist/esm/index.js | Modern ES modules |
+| CJS | dist/cjs/index.js | CommonJS for Node.js |
+| Browser ESM | dist/browser/codeshine.esm.min.js | Minified ESM for browsers |
+| Browser IIFE | dist/browser/codeshine.iife.min.js | For older browsers |
+| Types | dist/types/index.d.ts | TypeScript declarations |
+
+## CDN Usage
+
+```html
+<!-- ESM -->
+<script type="module">
+  import { highlight } from 'https://unpkg.com/@oxog/codeshine/dist/browser/codeshine.esm.min.js';
+</script>
+
+<!-- IIFE -->
+<script src="https://unpkg.com/@oxog/codeshine/dist/browser/codeshine.iife.min.js"></script>
+```
+
+## Development
+
+### Scripts
+
+| Command | Description |
+|---------|-------------|
+| npm run dev | Watch mode tests |
+| npm test | Run all tests |
+| npm run test:coverage | Coverage report |
+| npm run build | Full build |
+| npm run lint | ESLint check |
+| npm run format | Prettier format |
+| npm run benchmark | Performance benchmarks |
+
+### Adding a New Language
+
+1. Create definition in appropriate tier folder
+2. Define keywords, patterns, strings, comments, brackets
+3. Export from tier index
+4. Add to main languages index
+5. Write tests
+6. Update documentation
+
+### Adding a New Theme
+
+1. Create theme file with token colors and UI colors
+2. Export from appropriate theme folder
+3. Add to main theme index
+4. Add tests
+5. Update documentation
+
+## Environment Support
+
+- **Node.js:** 18.0+
+- **Browsers:** Chrome 80+, Firefox 80+, Safari 14+, Edge 80+
+- **Frameworks:** React 17.0+, Vue 3.0+, Svelte 3.0+
+
+## Bundle Size
+
+- ESM: ~31 KB (gzipped)
+- IIFE: ~25 KB (gzipped)
+
+## Comparison
+
+| Feature | Codeshine | Prism | Highlight.js | Shiki |
+|---------|-----------|-------|--------------|-------|
+| Zero Dependencies | Yes | No | No | No |
+| Framework Components | Yes | No | No | No |
+| TypeScript Native | Yes | No | No | Yes |
+| Streaming Support | Yes | No | No | No |
+| Bundle Size | 25KB | 30KB | 35KB | 200KB |
+| Diff View | Yes | No | No | No |
+| Auto Detection | Yes | No | Yes | No |
+
+## Optional Documentation
+
+- [README.md](README.md) - Feature overview and quick start
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Development guide
+- [CHANGELOG.md](CHANGELOG.md) - Version history
+- [website/](website/) - VitePress documentation site
