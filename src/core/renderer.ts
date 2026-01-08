@@ -4,13 +4,20 @@
 
 import type { Token, Theme, LineData, HighlightRange } from './types.js';
 import type { RenderOptions } from '../renderers/types.js';
-import { escapeHtml, escapeRegExp } from '../utils/escape.js';
+import { escapeHtml } from '../utils/escape.js';
 import { classnames } from '../utils/classnames.js';
 
 /**
  * CSS class prefix
  */
 const PREFIX = 'cs';
+
+/**
+ * Extended token for internal use
+ */
+interface RenderableToken extends Token {
+  rangeHighlight?: HighlightRange;
+}
 
 /**
  * Get CSS class for token type
@@ -26,12 +33,24 @@ export function renderToken(token: Token, theme: Theme): string {
   const className = getTokenClass(token.type);
   const color = theme.colors.tokens[token.type as keyof typeof theme.colors.tokens];
   const escapedValue = escapeHtml(token.value);
-
+  
+  let html = '';
   if (color) {
-    return `<span class="${className}" style="color:${color}">${escapedValue}</span>`;
+    html = `<span class="${className}" style="color:${color}">${escapedValue}</span>`;
+  } else {
+    html = `<span class="${className}">${escapedValue}</span>`;
   }
 
-  return `<span class="${className}">${escapedValue}</span>`;
+  // Handle range highlighting wrapper if present (internal feature)
+  const rangeToken = token as RenderableToken;
+  if (rangeToken.rangeHighlight) {
+    const { className: highlightClass, style: highlightStyle } = rangeToken.rangeHighlight;
+    const classes = highlightClass ?? `${PREFIX}-range-highlighted`;
+    const styleAttr = highlightStyle ? ` style="${highlightStyle}"` : '';
+    return `<span class="${classes}"${styleAttr}>${html}</span>`;
+  }
+
+  return html;
 }
 
 /**
@@ -43,22 +62,68 @@ export function renderTokens(tokens: Token[], theme: Theme): string {
 
 /**
  * Apply word highlighting to rendered HTML
+ * Uses a manual parser to safely identify text nodes and replace words
  */
 function applyWordHighlighting(html: string, words: string[]): string {
   if (words.length === 0) return html;
-
-  let result = html;
-  for (const word of words) {
-    // First HTML-escape the word for matching in the rendered HTML
-    const htmlEscapedWord = escapeHtml(word);
-    // Then regex-escape it to prevent ReDoS attacks and incorrect matching
-    const regexSafeWord = escapeRegExp(htmlEscapedWord);
-    const regex = new RegExp(`(?<=>)([^<]*)(${regexSafeWord})([^<]*)(?=<)`, 'g');
-    result = result.replace(regex, (_, before, match, after) => {
-      return `>${before}<span class="${PREFIX}-word-highlighted">${match}</span>${after}<`;
-    });
+  
+  // Create a set for O(1) lookup if words are simple, but we need partial matches?
+  // Usually word highlighting is for exact matches of the search term.
+  // The original implementation used regex with escaping, so it supported exact string match.
+  
+  let result = '';
+  let i = 0;
+  let inTag = false;
+  
+  while (i < html.length) {
+    const char = html[i];
+    
+    if (char === '<') {
+      inTag = true;
+      result += char;
+      i++;
+      continue;
+    }
+    
+    if (char === '>') {
+      inTag = false;
+      result += char;
+      i++;
+      continue;
+    }
+    
+    if (inTag) {
+      result += char;
+      i++;
+      continue;
+    }
+    
+    // We are in text content. Check for matches.
+    let matched = false;
+    for (const word of words) {
+      // Check if word matches at this position
+      // Note: html is already escaped. So "word" needs to be escaped to match?
+      // Yes, the input 'words' are plain text. The HTML has '&lt;'.
+      // If we search for '<', we should search for '&lt;'.
+      // But typically highlightWords are user identifiers.
+      // Let's assume we match against the *raw* value?
+      // No, we are modifying HTML. We must match against escaped value.
+      const escapedWord = escapeHtml(word);
+      
+      if (html.startsWith(escapedWord, i)) {
+        result += `<span class="${PREFIX}-word-highlighted">${escapedWord}</span>`;
+        i += escapedWord.length;
+        matched = true;
+        break;
+      }
+    }
+    
+    if (!matched) {
+      result += char;
+      i++;
+    }
   }
-
+  
   return result;
 }
 
@@ -79,6 +144,69 @@ function renderLineNumber(number: number, isActive: boolean): string {
 function renderDiffMarker(type: 'added' | 'removed' | 'modified'): string {
   const markers = { added: '+', removed: '-', modified: '~' };
   return `<span class="${PREFIX}-diff-marker">${markers[type]}</span>`;
+}
+
+/**
+ * Split tokens based on ranges
+ */
+function applyRangeHighlightsToTokens(tokens: Token[], ranges: HighlightRange[]): Token[] {
+  if (!ranges || ranges.length === 0) return tokens;
+  
+  let result: Token[] = [...tokens];
+  
+  for (const range of ranges) {
+    const newResult: Token[] = [];
+    
+    for (const token of result) {
+      // Intersection check
+      const tokenStart = token.start;
+      const tokenEnd = token.end;
+      const rangeStart = range.start;
+      const rangeEnd = range.end;
+      
+      // If no overlap
+      if (tokenEnd <= rangeStart || tokenStart >= rangeEnd) {
+        newResult.push(token);
+        continue;
+      }
+      
+      // Calculate overlap
+      const overlapStart = Math.max(tokenStart, rangeStart);
+      const overlapEnd = Math.min(tokenEnd, rangeEnd);
+      
+      // Split
+      // Part before
+      if (overlapStart > tokenStart) {
+        newResult.push({
+          ...token,
+          end: overlapStart,
+          value: token.value.slice(0, overlapStart - tokenStart)
+        });
+      }
+      
+      // Overlap part
+      newResult.push({
+        ...token,
+        start: overlapStart,
+        end: overlapEnd,
+        value: token.value.slice(overlapStart - tokenStart, overlapEnd - tokenStart),
+        // Add range info
+        ...({ rangeHighlight: range } as any)
+      });
+      
+      // Part after
+      if (overlapEnd < tokenEnd) {
+        newResult.push({
+          ...token,
+          start: overlapEnd,
+          value: token.value.slice(overlapEnd - tokenStart)
+        });
+      }
+    }
+    result = newResult;
+  }
+  
+  return result;
 }
 
 /**
@@ -116,20 +244,21 @@ export function renderLine(line: LineData, options: RenderOptions): string {
     }
   }
 
+  // Apply range highlighting logic to tokens
+  let tokensToRender = line.tokens;
+  if (options.highlightRanges) {
+    const lineRanges = options.highlightRanges.filter((r) => r.line === line.number);
+    if (lineRanges.length > 0) {
+      tokensToRender = applyRangeHighlightsToTokens(line.tokens, lineRanges);
+    }
+  }
+
   // Build line content
-  let content = renderTokens(line.tokens, options.theme);
+  let content = renderTokens(tokensToRender, options.theme);
 
   // Apply word highlighting
   if (options.highlightWords && options.highlightWords.length > 0) {
     content = applyWordHighlighting(content, options.highlightWords);
-  }
-
-  // Apply range highlighting
-  if (options.highlightRanges) {
-    const lineRanges = options.highlightRanges.filter((r) => r.line === line.number);
-    for (const range of lineRanges) {
-      content = applyRangeHighlight(content, line.content, range);
-    }
   }
 
   // Build line number if needed
@@ -147,31 +276,6 @@ export function renderLine(line: LineData, options: RenderOptions): string {
   const attrString = attrs ? ` ${attrs}` : '';
 
   return `<span class="${classes.join(' ')}"${attrString}>${diffMarker}${lineNumber}<span class="${PREFIX}-line-content">${content || ' '}</span></span>`;
-}
-
-/**
- * Apply range highlighting to content
- */
-function applyRangeHighlight(
-  html: string,
-  plainContent: string,
-  range: HighlightRange
-): string {
-  // This is a simplified implementation
-  // A full implementation would need to track positions through HTML
-  const _rangeClass = range.className ?? `${PREFIX}-range-highlighted`;
-  const _rangeStyle = range.style ? ` style="${range.style}"` : '';
-
-  // For now, return as-is if range is out of bounds
-  if (range.start < 0 || range.end > plainContent.length) {
-    return html;
-  }
-
-  // TODO: Implement proper range highlighting through HTML
-  void _rangeClass;
-  void _rangeStyle;
-
-  return html;
 }
 
 /**

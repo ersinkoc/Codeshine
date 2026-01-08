@@ -43,6 +43,9 @@ export async function* highlightStream(
     }
 
     yield html;
+
+    // Yield to event loop to allow UI updates
+    await new Promise((resolve) => setTimeout(resolve, 0));
   }
 }
 
@@ -104,6 +107,9 @@ export function createStreamingHighlighter(options: StreamOptions = {}) {
         }
 
         yield html;
+        
+        // Yield to event loop to allow UI updates
+        await new Promise((resolve) => setTimeout(resolve, 0));
       }
     },
 

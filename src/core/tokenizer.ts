@@ -266,7 +266,7 @@ export function tokenizeLine(
         // Check for interpolation
         if (strDef.interpolation) {
           const interpStart = strDef.interpolation.start;
-          if (line.slice(strEnd, strEnd + interpStart.length) === interpStart) {
+          if (interpStart.length > 0 && line.slice(strEnd, strEnd + interpStart.length) === interpStart) {
             hasInterpolation = true;
             // Find matching end
             let depth = 1;
