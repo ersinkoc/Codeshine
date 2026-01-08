@@ -54,24 +54,24 @@ export const haskell = defineLang({
     'until', 'unwords', 'unzip', 'unzip3', 'userError', 'words', 'writeFile', 'zip',
     'zip3', 'zipWith', 'zipWith3',
   ],
+  operators: /[!#$%&*+./<=>?@\\^|\-~:]+|->|<-|=>|::|\.\.|\|/,
   patterns: [
     // Pragma
-    { pattern: /\{-#[\s\S]*?#-\}/g, type: 'comment' },
-    // Constructor
-    { pattern: /\b[A-Z][a-zA-Z0-9_']*\b/g, type: 'type' },
+    { pattern: /\{-#[\s\S]*?#-\}/, type: 'comment' },
+    // Character literal
+    { pattern: /'(?:[^'\\]|\\(?:x[0-9a-fA-F]+|o[0-7]+|[0-9]+|.))'/, type: 'string' },
+    { pattern: /'\\&'/, type: 'string' },
+    // Constructor/Type (capitalized identifiers)
+    { pattern: /\b[A-Z][a-zA-Z0-9_']*\b/, type: 'type' },
     // Type signature
-    { pattern: /::[\s]*[^=\n]+/g, type: 'type' },
-    // Operator symbols
-    { pattern: /[!#$%&*+./<=>?@\\^|\-~:]+/g, type: 'operator' },
+    { pattern: /::/, type: 'operator' },
     // Numbers
-    { pattern: /\b0[xX][0-9a-fA-F_]+\b/g, type: 'number' },
-    { pattern: /\b0[oO][0-7_]+\b/g, type: 'number' },
-    { pattern: /\b0[bB][01_]+\b/g, type: 'number' },
-    { pattern: /\b\d[\d_]*(?:\.[\d_]+)?(?:[eE][+-]?\d+)?\b/g, type: 'number' },
-    // Character
-    { pattern: /'(?:[^'\\]|\\(?:x[0-9a-fA-F]+|o[0-7]+|[0-9]+|.))'|'\\&'/g, type: 'string' },
-    // Lambda
-    { pattern: /\\/g, type: 'keyword' },
+    { pattern: /\b0[xX][0-9a-fA-F_]+\b/, type: 'number' },
+    { pattern: /\b0[oO][0-7_]+\b/, type: 'number' },
+    { pattern: /\b0[bB][01_]+\b/, type: 'number' },
+    { pattern: /\b\d[\d_]*(?:\.[\d_]+)?(?:[eE][+-]?\d+)?\b/, type: 'number' },
+    // Lambda backslash
+    { pattern: /\\/, type: 'keyword' },
   ],
   strings: [
     { start: '"', end: '"', escape: '\\' },
