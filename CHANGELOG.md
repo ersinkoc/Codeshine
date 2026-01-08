@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-01-08
+
+### Security
+- **Fixed ReDoS vulnerability** in word highlighting - user-provided words are now properly escaped for regex to prevent catastrophic backtracking attacks
+
+### Fixed
+- Word highlighting now correctly matches literal strings (e.g., `console.log` no longer matches `consolexlog`)
+- React CodeBlock copy button now properly triggers copy functionality
+- Removed unused imports in React hooks (`useEffect`, `useCallback`, `React`, `ReactNode`)
+- Fixed `useMemo` dependency array in `useHighlight` hook
+
+### Changed
+- Added explicit `| undefined` to optional TypeScript properties for `exactOptionalPropertyTypes` compatibility
+- Improved copy button UX - now shows "Copied!" feedback after clicking
+
 ## [1.0.1] - 2026-01-01
 
 ### Added
@@ -75,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VS Code extension
 - More themes
 
+[1.0.2]: https://github.com/ersinkoc/codeshine/releases/tag/v1.0.2
 [1.0.1]: https://github.com/ersinkoc/codeshine/releases/tag/v1.0.1
 [1.0.0]: https://github.com/ersinkoc/codeshine/releases/tag/v1.0.0
-[Unreleased]: https://github.com/ersinkoc/codeshine/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/ersinkoc/codeshine/compare/v1.0.2...HEAD
