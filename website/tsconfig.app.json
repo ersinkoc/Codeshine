@@ -17,7 +17,11 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@oxog/codeshine": ["./lib/codeshine/types/index.d.ts"],
+      "@oxog/codeshine/react": ["./lib/codeshine/types/renderers/react/index.d.ts"],
+      "@oxog/codeshine/themes": ["./lib/codeshine/types/themes/index.d.ts"],
+      "@oxog/codeshine/languages": ["./lib/codeshine/types/languages/index.d.ts"]
     }
   },
   "include": ["src"]
