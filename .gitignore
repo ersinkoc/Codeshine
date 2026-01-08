@@ -3,7 +3,7 @@ node_modules/
 
 # Build output
 dist/
-docs/
+/docs/
 
 # IDE
 .idea/
@@ -29,3 +29,4 @@ coverage/
 # Misc
 *.tgz
 .cache/
+*.tsbuildinfo
