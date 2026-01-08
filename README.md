@@ -31,7 +31,7 @@
 |---------|:---------:|:-----:|:------------:|:-----:|
 | Zero Dependencies | ✅ | ❌ | ✅ | ❌ |
 | TypeScript Native | ✅ | ❌ | ❌ | ✅ |
-| Bundle Size (min+gzip) | ~25KB | ~15KB | ~35KB | ~200KB+ |
+| 150+ Languages | ✅ | ✅ | ✅ | ✅ |
 | React/Vue/Svelte | ✅ | ❌ | ❌ | ✅ |
 | Line Highlighting | ✅ | Plugin | ❌ | ✅ |
 | Streaming | ✅ | ❌ | ❌ | ❌ |
@@ -41,7 +41,7 @@
 ## Features
 
 - **Zero Dependencies** - No external dependencies, pure TypeScript
-- **45+ Languages** - JavaScript, TypeScript, Python, Rust, Go, and many more
+- **150+ Languages** - JavaScript, TypeScript, Python, Rust, Go, Haskell, and many more
 - **14 Themes** - VS Code, Dracula, Nord, One Dark, GitHub, Tokyo Night, and more
 - **Framework Support** - React, Vue 3, Svelte components included
 - **Rich Features** - Line numbers, line highlighting, diff view, word highlighting
@@ -209,7 +209,7 @@ const html = highlight(code, {
 ## Supported Languages
 
 <details>
-<summary><strong>45+ Languages Supported</strong></summary>
+<summary><strong>150+ Languages Supported</strong></summary>
 
 **Tier 1 (Core):** JavaScript, TypeScript, JSX, TSX, HTML, CSS, JSON, Markdown
 
@@ -219,7 +219,9 @@ const html = highlight(code, {
 
 **Tier 4 (Data):** CSV, Diff, JSON5, Regex
 
-**Tier 5 (Extended):** Lua, Dockerfile, Perl, R, Scala, Haskell, Elixir, Clojure, F#, Dart, Zig, Nim, and more
+**Tier 5 (Extended):** Lua, Dockerfile, Perl, R, Scala, Haskell, Elixir, Clojure, F#, Dart, Zig, Nim, Solidity, GLSL, HLSL, and more
+
+**Tier 6 & 7:** Assembly, VHDL, Verilog, COBOL, Fortran, Ada, Prolog, Erlang, OCaml, and many more specialized languages
 
 </details>
 
@@ -295,10 +297,12 @@ const codeshine = new Codeshine({
 
 | Bundle | Size | Gzip |
 |--------|------|------|
-| ESM | 151 KB | 31 KB |
-| ESM (min) | 93 KB | 25 KB |
-| IIFE | 165 KB | 33 KB |
-| IIFE (min) | 94 KB | 25 KB |
+| ESM | 590 KB | 131 KB |
+| ESM (min) | 374 KB | 107 KB |
+| IIFE | 653 KB | 134 KB |
+| IIFE (min) | 374 KB | 107 KB |
+
+*Note: Bundle includes all 150+ language definitions. Tree-shaking available for selective imports.*
 
 ## Browser Support
 

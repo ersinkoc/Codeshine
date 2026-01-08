@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-01-08
+
+### Added
+- **Haskell language support** with comprehensive test coverage (96 tests, 100% coverage)
+- New `website:sync` script for local development workflow
+- TypeScript path mappings for website to use local codeshine build
+
+### Fixed
+- **Haskell tokenization** - removed `/g` flags from patterns that broke regex matching
+- Added `operators` property to Haskell definition for proper operator highlighting
+- GitHub Actions workflow now properly syncs dist to website before build
+
+### Changed
+- **Website architecture** - now uses local `dist/` build instead of npm package
+- Improved CI/CD pipeline with proper build order (build → sync → website build)
+- Website development workflow simplified with `npm run website:dev`
+
 ## [1.0.3] - 2026-01-08
 
 ### Changed
@@ -101,8 +118,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - VS Code extension
 - More themes
 
+[1.0.4]: https://github.com/ersinkoc/codeshine/releases/tag/v1.0.4
 [1.0.3]: https://github.com/ersinkoc/codeshine/releases/tag/v1.0.3
 [1.0.2]: https://github.com/ersinkoc/codeshine/releases/tag/v1.0.2
 [1.0.1]: https://github.com/ersinkoc/codeshine/releases/tag/v1.0.1
 [1.0.0]: https://github.com/ersinkoc/codeshine/releases/tag/v1.0.0
-[Unreleased]: https://github.com/ersinkoc/codeshine/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/ersinkoc/codeshine/compare/v1.0.4...HEAD
