@@ -15,22 +15,24 @@ import { Codeshine } from '@oxog/codeshine';
 #### Constructor
 
 ```typescript
-new Codeshine(options?: CodeshineoOptions)
+new Codeshine(options?: CodeshineOptions)
 ```
 
 **Options:**
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `theme` | `Theme` | `vsDark` | Theme to use |
-| `plugins` | `Plugin[]` | `[]` | Plugins to apply |
+| `theme` | `string \| Theme` | `vscodeDark` | Theme to use |
+| `defaultLanguage` | `string` | `undefined` | Default language |
+| `lineNumbers` | `boolean` | `false` | Show line numbers by default |
+| `plugins` | `CodeshinePlugin[]` | `[]` | Plugins to apply |
 
 #### Methods
 
 ##### highlight()
 
 ```typescript
-highlight(code: string, options: HighlightOptions): string
+highlight(code: string, options?: HighlightOptions): string
 ```
 
 Highlights code and returns HTML string.
@@ -39,35 +41,80 @@ Highlights code and returns HTML string.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `language` | `string` | required | Language to highlight |
+| `language` | `string` | `undefined` | Language to highlight |
+| `autoDetect` | `boolean` | `false` | Auto-detect language |
+| `theme` | `string \| Theme` | instance theme | Theme override |
 | `lineNumbers` | `boolean` | `false` | Show line numbers |
 | `startLine` | `number` | `1` | Starting line number |
-| `highlightLines` | `(number \| string)[]` | `[]` | Lines to highlight |
-| `focusLines` | `number[]` | `[]` | Lines to focus |
-| `diff` | `boolean` | `false` | Enable diff mode |
-| `highlightWords` | `string[]` | `[]` | Words to highlight |
-| `highlightRanges` | `Range[]` | `[]` | Ranges to highlight |
+| `highlightLines` | `LineRange[]` | `undefined` | Lines to highlight |
+| `focusLines` | `LineRange[]` | `undefined` | Lines to focus (dim others) |
+| `diffLines` | `DiffLines` | `undefined` | Diff highlighting |
+| `highlightWords` | `string[]` | `undefined` | Words to highlight |
+| `highlightRanges` | `HighlightRange[]` | `undefined` | Character ranges to highlight |
 | `copyButton` | `boolean` | `false` | Show copy button |
-| `showLanguage` | `boolean` | `false` | Show language badge |
+| `showLanguageBadge` | `boolean` | `false` | Show language badge |
 | `filename` | `string` | `undefined` | Show filename header |
+| `wrapLines` | `boolean` | `false` | Wrap long lines |
+| `maxHeight` | `string` | `undefined` | Max height with scroll |
+| `tabSize` | `number` | `2` | Tab size for indentation |
+
+##### highlightAsync()
+
+```typescript
+highlightAsync(code: string, options?: HighlightOptions): Promise<string>
+```
+
+Async version of highlight for non-blocking rendering.
 
 ##### setTheme()
 
 ```typescript
-setTheme(theme: Theme): void
+setTheme(theme: string | Theme): Codeshine
 ```
 
-Sets the theme dynamically.
+Sets the theme dynamically. Returns instance for chaining.
 
-##### tokenize()
+##### registerLanguage()
 
 ```typescript
-tokenize(code: string, language: string): Token[]
+registerLanguage(language: LanguageDefinition): Codeshine
 ```
 
-Tokenizes code without rendering HTML.
+Registers a custom language definition.
+
+##### registerTheme()
+
+```typescript
+registerTheme(theme: Theme): Codeshine
+```
+
+Registers a custom theme.
 
 ## Functions
+
+### highlight()
+
+Standalone highlight function.
+
+```typescript
+import { highlight } from '@oxog/codeshine';
+
+const html = highlight(code, {
+  language: 'typescript',
+  theme: 'github-dark',
+  lineNumbers: true
+});
+```
+
+### highlightAsync()
+
+Async standalone highlight function.
+
+```typescript
+import { highlightAsync } from '@oxog/codeshine';
+
+const html = await highlightAsync(code, { language: 'javascript' });
+```
 
 ### defineTheme()
 
@@ -88,9 +135,9 @@ const theme = defineTheme({
 Extends an existing theme.
 
 ```typescript
-import { extendTheme, themes } from '@oxog/codeshine';
+import { extendTheme, dracula } from '@oxog/codeshine';
 
-const theme = extendTheme(themes.dracula, {
+const theme = extendTheme(dracula, {
   name: 'my-dracula',
   colors: { /* overrides */ }
 });
@@ -103,8 +150,8 @@ Auto-detects the language of code.
 ```typescript
 import { detectLanguage } from '@oxog/codeshine';
 
-const language = detectLanguage(code);
-const language = detectLanguage(code, { filename: 'app.ts' });
+const result = detectLanguage(code);
+// { language: 'python', confidence: 0.95 }
 ```
 
 ### getLanguage()
@@ -118,14 +165,15 @@ const lang = getLanguage('typescript');
 const lang = getLanguage('ts'); // alias
 ```
 
-### listLanguages()
+### getLanguageNames()
 
-Returns all registered languages.
+Returns all registered language names.
 
 ```typescript
-import { listLanguages } from '@oxog/codeshine';
+import { getLanguageNames } from '@oxog/codeshine';
 
-const languages = listLanguages();
+const languages = getLanguageNames();
+// ['javascript', 'typescript', 'python', ...]
 ```
 
 ### registerLanguage()
@@ -133,33 +181,48 @@ const languages = listLanguages();
 Registers a custom language.
 
 ```typescript
-import { registerLanguage } from '@oxog/codeshine';
+import { registerLanguage, defineLang } from '@oxog/codeshine';
 
-registerLanguage({
+const myLang = defineLang({
   name: 'my-lang',
   aliases: ['ml'],
   patterns: [
-    { pattern: /\b(keyword)\b/, type: 'keyword' }
+    { pattern: /\b(keyword)\b/g, type: 'keyword' }
   ]
 });
+
+registerLanguage(myLang);
 ```
 
-### createStream()
+### highlightStream()
 
-Creates a streaming highlighter for large files.
+Streaming highlighter for large files using async generator.
 
 ```typescript
-import { createStream } from '@oxog/codeshine';
+import { highlightStream } from '@oxog/codeshine';
 
-const stream = createStream({
+for await (const chunk of highlightStream(largeCode, {
   language: 'javascript',
-  chunkSize: 100,
-  onChunk: (html, progress) => { /* ... */ },
-  onComplete: (fullHtml) => { /* ... */ }
-});
+  chunkSize: 100
+})) {
+  container.innerHTML += chunk;
+}
+```
 
-stream.write(content);
-stream.end();
+### highlightWithProgress()
+
+Streaming with progress callback.
+
+```typescript
+import { highlightWithProgress } from '@oxog/codeshine';
+
+const html = await highlightWithProgress(code, {
+  language: 'javascript',
+  chunkSize: 50,
+  onChunk: (chunk, progress) => {
+    console.log(`Progress: ${Math.round(progress * 100)}%`);
+  }
+});
 ```
 
 ## Types
@@ -169,9 +232,11 @@ stream.end();
 ```typescript
 interface Token {
   type: TokenType;
-  content: string;
+  value: string;
   start: number;
   end: number;
+  line: number;
+  scopes?: string[];
 }
 ```
 
@@ -198,7 +263,24 @@ type TokenType =
   | 'interpolation'
   | 'meta'
   | 'invalid'
-  | 'text';
+  | 'plain';
+```
+
+### LineRange
+
+```typescript
+type LineRange = number | string | [number, number];
+// Examples: 5, '3-7', [1, 10]
+```
+
+### DiffLines
+
+```typescript
+interface DiffLines {
+  added?: LineRange[];
+  removed?: LineRange[];
+  modified?: LineRange[];
+}
 ```
 
 ### Theme
@@ -208,20 +290,26 @@ interface Theme {
   name: string;
   type: 'light' | 'dark';
   colors: ThemeColors;
-  fonts: ThemeFonts;
-  spacing: ThemeSpacing;
-  borders: ThemeBorders;
+  fonts?: ThemeFonts;
+  spacing?: ThemeSpacing;
+  borders?: ThemeBorders;
 }
 ```
 
-### Plugin
+### CodeshinePlugin
 
 ```typescript
-interface Plugin {
+interface CodeshinePlugin {
   name: string;
-  transform?(tokens: Token[]): Token[];
-  beforeRender?(html: string): string;
-  afterRender?(html: string): string;
+  version?: string;
+  onInit?(codeshine: CodeshineInstance): void;
+  onBeforeHighlight?(code: string, options: HighlightOptions): { code: string; options: HighlightOptions };
+  onAfterTokenize?(tokens: Token[]): Token[];
+  onBeforeRender?(tokens: Token[], options: HighlightOptions): Token[];
+  onAfterRender?(html: string): string;
+  languages?: LanguageDefinition[];
+  themes?: Theme[];
+  transformers?: Transformer[];
 }
 ```
 
@@ -232,18 +320,17 @@ interface HighlightRange {
   line: number;
   start: number;
   end: number;
+  className?: string;
+  style?: string;
 }
 ```
 
 ### StreamOptions
 
 ```typescript
-interface StreamOptions {
-  language: string;
+interface StreamOptions extends HighlightOptions {
   chunkSize?: number;
   onChunk?: (html: string, progress: number) => void;
-  onComplete?: (html: string) => void;
-  theme?: Theme;
 }
 ```
 
@@ -257,28 +344,58 @@ import { CodeBlock } from '@oxog/codeshine/react';
 <CodeBlock
   code={string}
   language={string}
+  autoDetect={boolean}
+  theme={string | Theme}
   lineNumbers={boolean}
   startLine={number}
-  highlightLines={array}
-  focusLines={array}
-  diff={boolean}
-  highlightWords={array}
-  highlightRanges={array}
+  highlightLines={LineRange[] | string}
+  focusLines={LineRange[] | string}
+  diffLines={DiffLines}
+  highlightWords={string[]}
+  highlightRanges={HighlightRange[]}
   copyButton={boolean}
-  showLanguage={boolean}
+  showLanguageBadge={boolean}
   filename={string}
-  theme={string | Theme}
+  wrapLines={boolean}
+  maxHeight={string}
+  tabSize={number}
+  onCopy={(code: string) => void}
+  onLineClick={(line: number) => void}
   className={string}
   style={CSSProperties}
 />
 ```
 
-### useCodeshine
+### useHighlight
 
 ```tsx
-import { useCodeshine } from '@oxog/codeshine/react';
+import { useHighlight } from '@oxog/codeshine/react';
 
-const { html, tokens } = useCodeshine(code, options);
+const { html, tokens, loading } = useHighlight(code, {
+  language: 'typescript',
+  lineNumbers: true
+});
+```
+
+### useCopy
+
+```tsx
+import { useCopy } from '@oxog/codeshine/react';
+
+const { copy, copied, error } = useCopy();
+
+// copied: boolean - true for 2 seconds after copy
+await copy(text);
+```
+
+### ThemeProvider
+
+```tsx
+import { ThemeProvider } from '@oxog/codeshine/react';
+
+<ThemeProvider theme="dracula">
+  <CodeBlock code={code} language="js" />
+</ThemeProvider>
 ```
 
 ## Constants
@@ -290,18 +407,46 @@ Object containing all built-in themes.
 ```typescript
 import { themes } from '@oxog/codeshine';
 
-themes.vsDark
-themes.vsLight
-themes.dracula
-themes.github
-themes.githubLight
-themes.oneDark
-themes.oneLight
-themes.nord
-themes.tokyoNight
-themes.nightOwl
-themes.synthwave
-themes.monokai
-themes.solarizedLight
-themes.catppuccinLatte
+// Dark themes
+themes.vsDark        // VS Code Dark+ (alias)
+themes.githubDark    // GitHub Dark
+themes.dracula       // Dracula
+themes.oneDark       // One Dark
+themes.nord          // Nord
+themes.tokyoNight    // Tokyo Night
+themes.monokai       // Monokai
+themes.catppuccinMocha // Catppuccin Mocha
+
+// Light themes
+themes.vsLight       // VS Code Light+ (alias)
+themes.githubLight   // GitHub Light
+themes.oneLight      // One Light
+themes.solarizedLight // Solarized Light
+themes.catppuccinLatte // Catppuccin Latte
+
+// Special
+themes.highContrastDark
+themes.highContrastLight
+```
+
+### Individual Theme Exports
+
+```typescript
+import {
+  githubDark,
+  githubLight,
+  vscodeDark,
+  vscodeLight,
+  dracula,
+  monokai,
+  oneDark,
+  oneLight,
+  nord,
+  tokyoNight,
+  catppuccinMocha,
+  catppuccinLatte,
+  solarizedLight,
+  highContrastDark,
+  highContrastLight
+} from '@oxog/codeshine';
 ```

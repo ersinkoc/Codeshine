@@ -76,16 +76,18 @@ themes.oneLight      // One Light
 ### Show Code Changes
 
 ```typescript
-const code = `
-function add(a, b) {
--  return a - b;
-+  return a + b;
-}
-`;
+const code = `function add(a, b) {
+  return a - b; // old
+  return a + b; // new
+}`;
 
 const html = codeshine.highlight(code, {
   language: 'javascript',
-  diff: true
+  lineNumbers: true,
+  diffLines: {
+    removed: [2],
+    added: [3],
+  }
 });
 ```
 
@@ -139,7 +141,7 @@ const html = codeshine.highlight(code, {
 ```typescript
 const html = codeshine.highlight(code, {
   language: 'rust',
-  showLanguage: true,
+  showLanguageBadge: true,
 });
 ```
 
@@ -157,23 +159,28 @@ const html = codeshine.highlight(code, {
 ### Progressive Rendering
 
 ```typescript
-import { createStream } from '@oxog/codeshine';
+import { highlightStream } from '@oxog/codeshine';
 
-const stream = createStream({
+const container = document.getElementById('code');
+
+// Using async generator for streaming
+for await (const chunk of highlightStream(largeFileContent, {
   language: 'javascript',
   chunkSize: 100, // lines per chunk
-  onChunk: (html, progress) => {
-    container.innerHTML += html;
-    console.log(`Progress: ${progress}%`);
-  },
-  onComplete: (fullHtml) => {
-    console.log('Done!');
+})) {
+  container.innerHTML += chunk;
+}
+
+// Or with progress callback
+import { highlightWithProgress } from '@oxog/codeshine';
+
+const html = await highlightWithProgress(largeFileContent, {
+  language: 'javascript',
+  chunkSize: 50,
+  onChunk: (chunk, progress) => {
+    console.log(`Progress: ${Math.round(progress * 100)}%`);
   }
 });
-
-// Feed large file content
-stream.write(largeFileContent);
-stream.end();
 ```
 
 ## React Integration
@@ -209,11 +216,11 @@ function App() {
       startLine={10}
       highlightLines={[1, 3, '5-7']}
       focusLines={[3, 4]}
-      diff
+      diffLines={{ added: [2], removed: [5] }}
       copyButton
-      showLanguage
+      showLanguageBadge
       filename="example.ts"
-      theme="github"
+      theme="github-dark"
       className="my-code-block"
     />
   );
@@ -246,21 +253,25 @@ function CustomCodeBlock({ code, language }) {
 
 ```typescript
 import { Codeshine } from '@oxog/codeshine';
-import type { Plugin, Token } from '@oxog/codeshine';
+import type { CodeshinePlugin, Token } from '@oxog/codeshine';
 
-const lineNumberPlugin: Plugin = {
-  name: 'custom-line-numbers',
-  transform(tokens: Token[]): Token[] {
-    // Transform tokens before rendering
+const uppercasePlugin: CodeshinePlugin = {
+  name: 'uppercase-keywords',
+  onAfterTokenize(tokens: Token[]): Token[] {
+    // Transform tokens after tokenizing
     return tokens.map(token => ({
       ...token,
-      content: token.content.toUpperCase()
+      value: token.type === 'keyword' ? token.value.toUpperCase() : token.value
     }));
+  },
+  onAfterRender(html: string): string {
+    // Transform HTML after rendering
+    return html.replace(/TODO/g, '<mark>TODO</mark>');
   }
 };
 
 const codeshine = new Codeshine({
-  plugins: [lineNumberPlugin]
+  plugins: [uppercasePlugin]
 });
 ```
 
@@ -284,7 +295,7 @@ console.log(language); // 'python'
 
 ```typescript
 const html = codeshine.highlight(code, {
-  language: 'auto', // Auto-detect
+  autoDetect: true, // Auto-detect language
   lineNumbers: true
 });
 ```

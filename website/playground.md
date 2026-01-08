@@ -16,7 +16,7 @@ const result = greet("World");
 console.log(result);`)
 
 const language = ref('javascript')
-const theme = ref('github-dark')
+const theme = ref('githubDark')
 const lineNumbers = ref(true)
 const highlightLines = ref('')
 
@@ -27,15 +27,17 @@ const languages = [
 ]
 
 const themes = [
-  { value: 'github-dark', label: 'GitHub Dark' },
-  { value: 'github-light', label: 'GitHub Light' },
+  { value: 'githubDark', label: 'GitHub Dark' },
+  { value: 'githubLight', label: 'GitHub Light' },
   { value: 'dracula', label: 'Dracula' },
   { value: 'monokai', label: 'Monokai' },
   { value: 'nord', label: 'Nord' },
-  { value: 'one-dark', label: 'One Dark' },
-  { value: 'tokyo-night', label: 'Tokyo Night' },
-  { value: 'vs-dark', label: 'VS Code Dark' },
-  { value: 'vs-light', label: 'VS Code Light' },
+  { value: 'oneDark', label: 'One Dark' },
+  { value: 'tokyoNight', label: 'Tokyo Night' },
+  { value: 'vsDark', label: 'VS Code Dark' },
+  { value: 'vsLight', label: 'VS Code Light' },
+  { value: 'catppuccinMocha', label: 'Catppuccin Mocha' },
+  { value: 'solarizedLight', label: 'Solarized Light' },
 ]
 
 const highlightedCode = ref('')
