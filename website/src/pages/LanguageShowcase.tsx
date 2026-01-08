@@ -951,13 +951,14 @@ export function LanguageShowcase() {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold mb-4">Language Showcase</h1>
-        <p className="text-lg text-muted-foreground">
-          Explore syntax highlighting for all {Object.keys(LANGUAGE_EXAMPLES).length}+ supported languages.
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-12">
+      <div className="max-w-5xl mx-auto space-y-8">
+        <div>
+          <h1 className="text-4xl font-bold mb-4">Language Showcase</h1>
+          <p className="text-lg text-muted-foreground">
+            Explore syntax highlighting for all {Object.keys(LANGUAGE_EXAMPLES).length}+ supported languages.
+          </p>
+        </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 items-center">
@@ -1060,6 +1061,7 @@ export function LanguageShowcase() {
           No languages found matching your filters.
         </div>
       )}
+      </div>
     </div>
   );
 }

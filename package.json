@@ -83,8 +83,9 @@
     "prepublishOnly": "npm run lint && npm run test:coverage && npm run build",
     "size": "node scripts/build-browser.js",
     "benchmark": "node scripts/benchmark.js",
-    "website:dev": "cd website && npm run dev",
-    "website:build": "cd website && npm run build"
+    "website:sync": "node scripts/copy-to-website.js",
+    "website:dev": "npm run build && npm run website:sync && cd website && npm run dev",
+    "website:build": "npm run build && npm run website:sync && cd website && npm run build"
   },
   "engines": {
     "node": ">=18.0.0"

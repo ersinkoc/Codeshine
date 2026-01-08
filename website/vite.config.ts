@@ -12,6 +12,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      // Use local codeshine build instead of npm package
+      '@oxog/codeshine/react': resolve(__dirname, './lib/codeshine/esm/renderers/react/index.js'),
+      '@oxog/codeshine/themes': resolve(__dirname, './lib/codeshine/esm/themes/index.js'),
+      '@oxog/codeshine/languages': resolve(__dirname, './lib/codeshine/esm/languages/index.js'),
+      '@oxog/codeshine': resolve(__dirname, './lib/codeshine/esm/index.js'),
     },
   },
   build: {
@@ -21,7 +26,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          codeshine: ['@oxog/codeshine'],
         },
       },
     },

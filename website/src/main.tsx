@@ -5,6 +5,14 @@ import { ThemeProvider } from '@/hooks/useTheme';
 import App from './App';
 import './index.css';
 
+// Register all languages for syntax highlighting
+import { registerLanguage, allLanguages } from '@oxog/codeshine';
+
+// Register all available languages
+allLanguages.forEach((lang) => {
+  registerLanguage(lang);
+});
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
