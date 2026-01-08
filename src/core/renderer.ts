@@ -185,14 +185,14 @@ function applyRangeHighlightsToTokens(tokens: Token[], ranges: HighlightRange[])
       }
       
       // Overlap part
-      newResult.push({
+      const overlappingToken: RenderableToken = {
         ...token,
         start: overlapStart,
         end: overlapEnd,
         value: token.value.slice(overlapStart - tokenStart, overlapEnd - tokenStart),
-        // Add range info
-        ...({ rangeHighlight: range } as any)
-      });
+        rangeHighlight: range
+      };
+      newResult.push(overlappingToken);
       
       // Part after
       if (overlapEnd < tokenEnd) {

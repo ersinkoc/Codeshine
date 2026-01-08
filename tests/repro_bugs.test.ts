@@ -9,16 +9,15 @@ describe('BUG FIX VERIFICATION', () => {
   test('BUG-001: ReDoS fixed and logic correct', () => {
     const codeshine = new Codeshine();
     const longLine = '>' + 'a'.repeat(50000) + '<';
-    const start = performance.now();
-    
+    const start = globalThis.performance.now();
+
     // Use unknown language to avoid syntax highlighting interference, testing pure applyWordHighlighting via renderPlainText
     const html = codeshine.highlight(longLine, {
-      language: 'unknown-lang-xyz', 
+      language: 'unknown-lang-xyz',
       highlightWords: ['MATCH_ME_NOT'],
     });
-    
-    const end = performance.now();
-    console.log(`ReDoS test took ${end - start}ms`);
+
+    const end = globalThis.performance.now();
     
     // Should be fast
     expect(end - start).toBeLessThan(100);
@@ -47,9 +46,9 @@ describe('BUG FIX VERIFICATION', () => {
     codeshine.registerLanguage(badLang);
 
     // This should now run quickly and not hang
-    const start = performance.now();
+    const start = globalThis.performance.now();
     const html = codeshine.highlight('"test"', { language: 'bad-lang' });
-    const end = performance.now();
+    const end = globalThis.performance.now();
     
     expect(html).toBeDefined();
     // Should be very fast
