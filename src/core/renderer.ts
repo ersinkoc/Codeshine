@@ -4,7 +4,7 @@
 
 import type { Token, Theme, LineData, HighlightRange } from './types.js';
 import type { RenderOptions } from '../renderers/types.js';
-import { escapeHtml } from '../utils/escape.js';
+import { escapeHtml, escapeRegExp } from '../utils/escape.js';
 import { classnames } from '../utils/classnames.js';
 
 /**
@@ -49,8 +49,11 @@ function applyWordHighlighting(html: string, words: string[]): string {
 
   let result = html;
   for (const word of words) {
-    const escapedWord = escapeHtml(word);
-    const regex = new RegExp(`(?<=>)([^<]*)(${escapedWord})([^<]*)(?=<)`, 'g');
+    // First HTML-escape the word for matching in the rendered HTML
+    const htmlEscapedWord = escapeHtml(word);
+    // Then regex-escape it to prevent ReDoS attacks and incorrect matching
+    const regexSafeWord = escapeRegExp(htmlEscapedWord);
+    const regex = new RegExp(`(?<=>)([^<]*)(${regexSafeWord})([^<]*)(?=<)`, 'g');
     result = result.replace(regex, (_, before, match, after) => {
       return `>${before}<span class="${PREFIX}-word-highlighted">${match}</span>${after}<`;
     });

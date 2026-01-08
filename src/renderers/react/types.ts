@@ -13,42 +13,42 @@ export interface CodeBlockProps {
   code: string;
 
   // Language
-  language?: string;
-  autoDetect?: boolean;
+  language?: string | undefined;
+  autoDetect?: boolean | undefined;
 
   // Theme
-  theme?: string | Theme;
+  theme?: string | Theme | undefined;
 
   // Line features
-  lineNumbers?: boolean;
-  startLine?: number;
-  highlightLines?: LineRange[] | string;
-  focusLines?: LineRange[] | string;
-  diffLines?: DiffLines;
+  lineNumbers?: boolean | undefined;
+  startLine?: number | undefined;
+  highlightLines?: LineRange[] | string | undefined;
+  focusLines?: LineRange[] | string | undefined;
+  diffLines?: DiffLines | undefined;
 
   // Word features
-  highlightWords?: string[];
-  highlightRanges?: HighlightRange[];
+  highlightWords?: string[] | undefined;
+  highlightRanges?: HighlightRange[] | undefined;
 
   // UI features
-  showLanguageBadge?: boolean;
-  copyButton?: boolean;
-  filename?: string;
-  wrapLines?: boolean;
-  maxHeight?: string;
-  collapsible?: boolean;
-  defaultCollapsed?: boolean;
+  showLanguageBadge?: boolean | undefined;
+  copyButton?: boolean | undefined;
+  filename?: string | undefined;
+  wrapLines?: boolean | undefined;
+  maxHeight?: string | undefined;
+  collapsible?: boolean | undefined;
+  defaultCollapsed?: boolean | undefined;
 
   // Events
-  onCopy?: (code: string) => void;
-  onLineClick?: (line: number) => void;
+  onCopy?: ((code: string) => void) | undefined;
+  onLineClick?: ((line: number) => void) | undefined;
 
   // Styling
-  className?: string;
-  style?: CSSProperties;
+  className?: string | undefined;
+  style?: CSSProperties | undefined;
 
   // Advanced
-  tabSize?: number;
+  tabSize?: number | undefined;
 }
 
 /**
@@ -73,7 +73,7 @@ export interface ThemeContextValue {
  * useHighlight hook options
  */
 export interface UseHighlightOptions extends Omit<HighlightOptions, 'theme'> {
-  theme?: string | Theme;
+  theme?: string | Theme | undefined;
 }
 
 /**

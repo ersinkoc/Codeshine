@@ -36,7 +36,7 @@ export interface Token {
   start: number;
   end: number;
   line: number;
-  scopes?: string[];
+  scopes?: string[] | undefined;
 }
 
 /**
@@ -70,35 +70,35 @@ export interface HighlightRange {
  */
 export interface HighlightOptions {
   // Language
-  language?: string;
-  autoDetect?: boolean;
+  language?: string | undefined;
+  autoDetect?: boolean | undefined;
 
   // Theme
-  theme?: string | Theme;
+  theme?: string | Theme | undefined;
 
   // Line features
-  lineNumbers?: boolean;
-  startLine?: number;
-  highlightLines?: LineRange[] | string;
-  focusLines?: LineRange[] | string;
-  diffLines?: DiffLines;
+  lineNumbers?: boolean | undefined;
+  startLine?: number | undefined;
+  highlightLines?: LineRange[] | string | undefined;
+  focusLines?: LineRange[] | string | undefined;
+  diffLines?: DiffLines | undefined;
 
   // Word features
-  highlightWords?: string[];
-  highlightRanges?: HighlightRange[];
+  highlightWords?: string[] | undefined;
+  highlightRanges?: HighlightRange[] | undefined;
 
   // UI features
-  showLanguageBadge?: boolean;
-  copyButton?: boolean;
-  filename?: string;
-  wrapLines?: boolean;
-  maxHeight?: string;
-  collapsible?: boolean;
-  defaultCollapsed?: boolean;
+  showLanguageBadge?: boolean | undefined;
+  copyButton?: boolean | undefined;
+  filename?: string | undefined;
+  wrapLines?: boolean | undefined;
+  maxHeight?: string | undefined;
+  collapsible?: boolean | undefined;
+  defaultCollapsed?: boolean | undefined;
 
   // Advanced
-  tabSize?: number;
-  transformers?: Transformer[];
+  tabSize?: number | undefined;
+  transformers?: Transformer[] | undefined;
 }
 
 /**
@@ -216,13 +216,13 @@ export interface ThemeBorders {
  */
 export interface TokenizerState {
   inString?: boolean;
-  stringDelimiter?: string;
+  stringDelimiter?: string | undefined;
   inComment?: boolean;
-  commentType?: 'line' | 'block';
+  commentType?: 'line' | 'block' | undefined;
   inTemplate?: boolean;
   templateDepth?: number;
   inRegex?: boolean;
-  embeddedLanguage?: string;
+  embeddedLanguage?: string | undefined;
   bracketStack?: string[];
 }
 

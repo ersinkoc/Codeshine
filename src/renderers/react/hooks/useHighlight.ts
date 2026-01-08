@@ -2,7 +2,7 @@
  * useHighlight hook for React
  */
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import type { UseHighlightOptions, UseHighlightResult } from '../types.js';
 import { highlight } from '../../../core/highlighter.js';
 import { tokenize } from '../../../core/tokenizer.js';
@@ -15,11 +15,10 @@ export function useHighlight(
   code: string,
   options: UseHighlightOptions = {}
 ): UseHighlightResult {
-  const [loading, setLoading] = useState(false);
-
   const html = useMemo(() => {
     return highlight(code, options);
-  }, [code, options.language, options.theme, JSON.stringify(options)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code, JSON.stringify(options)]);
 
   const tokens = useMemo(() => {
     if (!options.language) {
@@ -35,7 +34,7 @@ export function useHighlight(
   return {
     html,
     tokens,
-    loading,
+    loading: false,
   };
 }
 

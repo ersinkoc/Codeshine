@@ -18,8 +18,8 @@ export interface Renderer {
  */
 export interface RenderOptions {
   theme: Theme;
-  lineNumbers?: boolean;
-  startLine?: number;
+  lineNumbers?: boolean | undefined;
+  startLine?: number | undefined;
   highlightLines?: number[];
   focusLines?: number[];
   diffLines?: {
@@ -27,17 +27,17 @@ export interface RenderOptions {
     removed: number[];
     modified: number[];
   };
-  highlightWords?: string[];
-  highlightRanges?: import('../core/types.js').HighlightRange[];
-  showLanguageBadge?: boolean;
-  language?: string;
-  copyButton?: boolean;
-  filename?: string;
-  wrapLines?: boolean;
-  maxHeight?: string;
-  collapsible?: boolean;
-  defaultCollapsed?: boolean;
-  tabSize?: number;
+  highlightWords?: string[] | undefined;
+  highlightRanges?: import('../core/types.js').HighlightRange[] | undefined;
+  showLanguageBadge?: boolean | undefined;
+  language?: string | undefined;
+  copyButton?: boolean | undefined;
+  filename?: string | undefined;
+  wrapLines?: boolean | undefined;
+  maxHeight?: string | undefined;
+  collapsible?: boolean | undefined;
+  defaultCollapsed?: boolean | undefined;
+  tabSize?: number | undefined;
 }
 
 /**

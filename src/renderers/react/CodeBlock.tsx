@@ -2,7 +2,7 @@
  * CodeBlock component for React
  */
 
-import React, { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, type MouseEvent } from 'react';
 import type { CodeBlockProps } from './types.js';
 import { useHighlight } from './hooks/useHighlight.js';
 import { useCopy } from './hooks/useCopy.js';
@@ -58,14 +58,19 @@ export function CodeBlock({
 
   const { copy, copied } = useCopy();
 
-  const handleCopy = useCallback(() => {
-    copy(code);
-    onCopy?.(code);
-  }, [code, copy, onCopy]);
-
-  const handleLineClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleClick = useCallback(
+    (event: MouseEvent<HTMLDivElement>) => {
       const target = event.target as HTMLElement;
+
+      // Handle copy button click
+      const copyButton = target.closest('.cs-copy-button');
+      if (copyButton) {
+        copy(code);
+        onCopy?.(code);
+        return;
+      }
+
+      // Handle line click
       const lineElement = target.closest('[data-line]');
       if (lineElement) {
         const lineNumber = parseInt(lineElement.getAttribute('data-line') ?? '0', 10);
@@ -74,8 +79,19 @@ export function CodeBlock({
         }
       }
     },
-    [onLineClick]
+    [code, copy, onCopy, onLineClick]
   );
+
+  // Update copy button text when copied
+  const processedHtml = useMemo(() => {
+    if (copied) {
+      return html.replace(
+        /<span class="cs-copy-text">Copy<\/span>/,
+        '<span class="cs-copy-text">Copied!</span>'
+      );
+    }
+    return html;
+  }, [html, copied]);
 
   const containerClassName = useMemo(() => {
     const classes = ['cs-container'];
@@ -89,8 +105,8 @@ export function CodeBlock({
     <div
       className={containerClassName}
       style={style}
-      onClick={handleLineClick}
-      dangerouslySetInnerHTML={{ __html: html }}
+      onClick={handleClick}
+      dangerouslySetInnerHTML={{ __html: processedHtml }}
     />
   );
 }

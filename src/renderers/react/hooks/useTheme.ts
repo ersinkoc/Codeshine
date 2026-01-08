@@ -2,9 +2,8 @@
  * useTheme hook for React
  */
 
-import { useContext, useCallback } from 'react';
+import { useContext } from 'react';
 import { ThemeContext } from '../ThemeProvider.js';
-import type { Theme } from '../../../core/types.js';
 
 /**
  * Hook for accessing and updating theme

@@ -2,8 +2,7 @@
  * ThemeProvider component for React
  */
 
-import React, { createContext, useState, useCallback, useMemo } from 'react';
-import type { ReactNode } from 'react';
+import { createContext, useState, useCallback, useMemo } from 'react';
 import type { Theme } from '../../core/types.js';
 import type { ThemeContextValue, ThemeProviderProps } from './types.js';
 import { getTheme, getThemeNames, githubDark } from '../../themes/index.js';
