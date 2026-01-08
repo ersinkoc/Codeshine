@@ -10,6 +10,7 @@ import { Languages } from '@/pages/docs/Languages';
 import { ApiOverview } from '@/pages/docs/ApiOverview';
 import { Examples } from '@/pages/Examples';
 import { Playground } from '@/pages/Playground';
+import { LanguageShowcase } from '@/pages/LanguageShowcase';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         </Route>
         <Route path="examples" element={<Examples />} />
         <Route path="playground" element={<Playground />} />
+        <Route path="showcase" element={<LanguageShowcase />} />
       </Route>
     </Routes>
   );

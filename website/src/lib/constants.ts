@@ -13,8 +13,8 @@ export const FEATURES = [
     icon: 'Package',
   },
   {
-    title: '45+ Languages',
-    description: 'JavaScript, TypeScript, Python, Rust, Go, and more.',
+    title: '135+ Languages',
+    description: 'JavaScript, TypeScript, Python, Rust, Go, and many more.',
     icon: 'Code',
   },
   {
@@ -43,6 +43,7 @@ export const NAV_ITEMS = [
   { label: 'Docs', href: '/docs' },
   { label: 'API', href: '/docs/api' },
   { label: 'Examples', href: '/examples' },
+  { label: 'Showcase', href: '/showcase' },
   { label: 'Playground', href: '/playground' },
 ];
 

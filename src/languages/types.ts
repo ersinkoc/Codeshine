@@ -11,6 +11,7 @@ export interface TokenPattern {
   pattern: RegExp;
   type: TokenType;
   scopes?: string[];
+  captures?: (TokenType | null)[];
 }
 
 /**
@@ -51,8 +52,8 @@ export interface BracketPair {
  */
 export interface EmbeddedLanguage {
   language: string;
-  start: RegExp;
-  end: RegExp;
+  start: RegExp | string;
+  end: RegExp | string;
 }
 
 /**
@@ -68,6 +69,7 @@ export interface LanguageDefinition {
   keywords?: string[];
   typeKeywords?: string[];
   constants?: string[];
+  builtins?: string[];
   operators?: string[] | RegExp;
 
   // Patterns (order matters - first match wins)
@@ -84,6 +86,7 @@ export interface LanguageDefinition {
 
   // Embedded languages
   embeddedLanguages?: EmbeddedLanguage[];
+  embedded?: EmbeddedLanguage[];
 }
 
 /**

@@ -14,7 +14,7 @@ export function Introduction() {
         <h2 className="text-2xl font-semibold">What is Codeshine?</h2>
         <p className="text-muted-foreground">
           Codeshine is a fast, lightweight syntax highlighting library that works in any JavaScript environment.
-          It supports 45+ programming languages, 14 beautiful themes, and provides first-class React integration.
+          It supports 135+ programming languages, 14 beautiful themes, and provides first-class React integration.
         </p>
       </section>
 
@@ -22,7 +22,7 @@ export function Introduction() {
         <h2 className="text-2xl font-semibold">Key Features</h2>
         <ul className="list-disc list-inside space-y-2 text-muted-foreground">
           <li><strong>Zero Dependencies</strong> - No external runtime dependencies</li>
-          <li><strong>45+ Languages</strong> - JavaScript, TypeScript, Python, Rust, Go, and more</li>
+          <li><strong>135+ Languages</strong> - JavaScript, TypeScript, Python, Rust, Go, and more</li>
           <li><strong>14 Themes</strong> - GitHub, Dracula, Nord, One Dark, Tokyo Night, etc.</li>
           <li><strong>React Ready</strong> - First-class React components and hooks</li>
           <li><strong>TypeScript Native</strong> - Full type safety with strict mode</li>

@@ -25,7 +25,14 @@ export type TokenType =
   | 'interpolation'
   | 'meta'
   | 'invalid'
-  | 'plain';
+  | 'plain'
+  // Extended token types
+  | 'decorator'
+  | 'symbol'
+  | 'label'
+  | 'macro'
+  | 'default'
+  | 'builtin';
 
 /**
  * A single token in the token stream

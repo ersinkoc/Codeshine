@@ -52,7 +52,7 @@ const FEATURES = [
     color: 'from-pink-500 to-rose-500',
   },
   {
-    title: '45+ Languages',
+    title: '135+ Languages',
     description: 'JavaScript, TypeScript, Python, Rust, Go, and many more supported.',
     icon: FileCode,
     color: 'from-amber-500 to-orange-500',

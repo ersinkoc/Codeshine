@@ -19,7 +19,15 @@ const LANGUAGE_TIERS = [
   },
   {
     name: 'Tier 5 (Extended)',
-    languages: ['Lua', 'Dockerfile', 'Perl', 'R', 'Scala', 'Haskell', 'Elixir', 'and more...'],
+    languages: ['Lua', 'Dockerfile', 'Perl', 'R', 'Scala', 'Haskell', 'Elixir', 'Clojure', 'F#', 'Dart', 'Objective-C', 'Assembly', 'WebAssembly', 'Nginx', 'Prisma', 'Solidity', 'LaTeX', 'GLSL', 'HLSL', 'Zig', 'Nim', 'V', 'Odin'],
+  },
+  {
+    name: 'Tier 6 (Additional)',
+    languages: ['SCSS', 'Less', 'Vue', 'Svelte', 'Handlebars', 'EJS', 'Pug', 'Twig', 'Liquid', 'Makefile', 'Terraform', 'CMake', 'Gradle', 'Ansible', 'Docker', 'Groovy', 'OCaml', 'Erlang', 'Elm', 'PureScript', 'ReasonML', 'ReScript', 'Julia', 'MATLAB', 'Fortran', 'COBOL', 'Ada', 'Pascal', 'D', 'Crystal', 'Verilog', 'Scheme', 'Common Lisp', 'Protobuf', 'CoffeeScript'],
+  },
+  {
+    name: 'Tier 7 (Specialized)',
+    languages: ['Fish', 'Zsh', 'Tcsh', 'Ksh', 'Tcl', 'AWK', 'Sed', 'MongoDB', 'Redis', 'Cassandra CQL', 'SPARQL', 'HiveQL', 'XPath', 'XQuery', 'jq', 'VHDL', 'SystemVerilog', 'ARM Assembly', 'MIPS Assembly', 'NASM', 'GDScript', 'UnrealScript', 'AngelScript', 'Stylus', 'Sass', 'PostCSS', 'Jsonnet', 'HCL', 'CUE', 'Dhall', 'HOCON', 'SAS', 'Stata', 'Maxima', 'BASIC', 'FoxPro', 'Clipper', 'Brainfuck', 'Befunge', 'Whitespace', 'AppleScript', 'AutoHotkey', 'AutoIt'],
   },
 ];
 
@@ -29,7 +37,7 @@ export function Languages() {
       <div>
         <h1 className="text-4xl font-bold mb-4">Languages</h1>
         <p className="text-lg text-muted-foreground">
-          Codeshine supports 45+ programming languages out of the box.
+          Codeshine supports 135+ programming languages out of the box.
         </p>
       </div>
 
