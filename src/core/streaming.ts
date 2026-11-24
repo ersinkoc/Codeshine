@@ -11,13 +11,23 @@ import { highlight } from './highlighter.js';
 const DEFAULT_CHUNK_SIZE = 100;
 
 /**
+ * Normalize a requested chunk size to a positive integer.
+ * A chunk size of 0 or less would leave `processed` unchanged forever.
+ */
+function resolveChunkSize(chunkSize: number | undefined): number {
+  if (chunkSize === undefined) return DEFAULT_CHUNK_SIZE;
+  const size = Math.trunc(chunkSize);
+  return Number.isFinite(size) && size > 0 ? size : DEFAULT_CHUNK_SIZE;
+}
+
+/**
  * Streaming highlight generator
  */
 export async function* highlightStream(
   code: string,
   options: StreamOptions = {}
 ): AsyncGenerator<string, void, unknown> {
-  const chunkSize = options.chunkSize ?? DEFAULT_CHUNK_SIZE;
+  const chunkSize = resolveChunkSize(options.chunkSize);
   const lines = code.split('\n');
   const totalLines = lines.length;
 
@@ -74,7 +84,7 @@ export function createStreamingHighlighter(options: StreamOptions = {}) {
 
   return {
     async *highlight(code: string): AsyncGenerator<string, void, unknown> {
-      const chunkSize = options.chunkSize ?? DEFAULT_CHUNK_SIZE;
+      const chunkSize = resolveChunkSize(options.chunkSize);
       const lines = code.split('\n');
       const totalLines = lines.length;
 

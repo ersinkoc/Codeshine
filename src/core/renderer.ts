@@ -97,7 +97,19 @@ function applyWordHighlighting(html: string, words: string[]): string {
       i++;
       continue;
     }
-    
+
+    // Copy HTML entities through untouched, otherwise a word that is a
+    // substring of an entity name (e.g. "lt" in "&lt;") would split the
+    // escape and corrupt the rendered text.
+    if (char === '&') {
+      const semicolon = html.indexOf(';', i);
+      if (semicolon !== -1 && semicolon - i <= 10) {
+        result += html.slice(i, semicolon + 1);
+        i = semicolon + 1;
+        continue;
+      }
+    }
+
     // We are in text content. Check for matches.
     let matched = false;
     for (const word of words) {

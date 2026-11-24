@@ -39,6 +39,17 @@ describe('highlightStream', () => {
     expect(onChunk).toHaveBeenCalled();
   });
 
+  it('should terminate for non-positive chunk sizes', async () => {
+    // Regression: chunkSize <= 0 left `processed` unchanged and streamed forever.
+    for (const chunkSize of [0, -1]) {
+      const chunks: string[] = [];
+      for await (const chunk of highlightStream('a\nb\nc', { language: 'javascript', chunkSize })) {
+        chunks.push(chunk);
+      }
+      expect(chunks).toHaveLength(1);
+    }
+  });
+
   it('should report progress', async () => {
     const code = 'line1\nline2\nline3\nline4';
     const progressValues: number[] = [];

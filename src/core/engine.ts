@@ -129,9 +129,6 @@ export class Codeshine implements CodeshineInstance {
       }
     }
 
-    // Parse to lines
-    const lines = parseTokensToLines(tokens);
-
     // Parse line ranges
     const parsedLines = {
       highlight: parseLineRanges(processedOptions.highlightLines),
@@ -150,6 +147,9 @@ export class Codeshine implements CodeshineInstance {
         processedTokens = plugin.onBeforeRender(processedTokens, processedOptions);
       }
     }
+
+    // Parse the plugin-processed tokens to lines
+    const lines = parseTokensToLines(processedTokens);
 
     // Render
     const renderOptions = toRenderOptions(processedOptions, theme, parsedLines);
@@ -222,7 +222,10 @@ export class Codeshine implements CodeshineInstance {
     code: string,
     options: StreamOptions = {}
   ): AsyncGenerator<string, void, unknown> {
-    const chunkSize = options.chunkSize ?? 100;
+    const requestedChunkSize = Math.trunc(options.chunkSize ?? 100);
+    // Guard against chunkSize <= 0 / NaN: `processed += chunkSize` would never advance.
+    const chunkSize =
+      Number.isFinite(requestedChunkSize) && requestedChunkSize > 0 ? requestedChunkSize : 100;
     const lines = code.split('\n');
     const totalLines = lines.length;
 
