@@ -45,8 +45,10 @@ export function renderToken(token: Token, theme: Theme): string {
   const rangeToken = token as RenderableToken;
   if (rangeToken.rangeHighlight) {
     const { className: highlightClass, style: highlightStyle } = rangeToken.rangeHighlight;
-    const classes = highlightClass ?? `${PREFIX}-range-highlighted`;
-    const styleAttr = highlightStyle ? ` style="${highlightStyle}"` : '';
+    // Both values are caller supplied and land inside attributes: escape them so
+    // a quote cannot close the attribute and append new ones.
+    const classes = escapeHtml(highlightClass ?? `${PREFIX}-range-highlighted`);
+    const styleAttr = highlightStyle ? ` style="${escapeHtml(highlightStyle)}"` : '';
     return `<span class="${classes}"${styleAttr}>${html}</span>`;
   }
 
