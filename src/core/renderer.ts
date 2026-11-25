@@ -144,11 +144,18 @@ function applyWordHighlighting(html: string, words: string[]): string {
 /**
  * Is an attribute name safe to emit from line data?
  * HTML does not decode entities inside attribute names, so escaping cannot make
- * an arbitrary name harmless: reject anything that is not a plain name and any
- * event handler instead of writing it out.
+ * an arbitrary name harmless: reject anything that is not a plain name, any
+ * event handler, and `style` — CSS values are still executable (overlays,
+ * `url()` beacons), and escaping a CSS value does not neutralise it.
  */
 function isSafeAttributeName(name: string): boolean {
-  return /^[a-zA-Z][a-zA-Z0-9_.:-]*$/.test(name) && !/^on/i.test(name);
+  const lower = name.toLowerCase();
+
+  return (
+    /^[a-zA-Z][a-zA-Z0-9_.:-]*$/.test(name) &&
+    !lower.startsWith('on') &&
+    lower !== 'style'
+  );
 }
 
 /**
