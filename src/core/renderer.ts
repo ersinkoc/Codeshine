@@ -142,6 +142,16 @@ function applyWordHighlighting(html: string, words: string[]): string {
 }
 
 /**
+ * Is an attribute name safe to emit from line data?
+ * HTML does not decode entities inside attribute names, so escaping cannot make
+ * an arbitrary name harmless: reject anything that is not a plain name and any
+ * event handler instead of writing it out.
+ */
+function isSafeAttributeName(name: string): boolean {
+  return /^[a-zA-Z][a-zA-Z0-9_.:-]*$/.test(name) && !/^on/i.test(name);
+}
+
+/**
  * Render line number
  */
 function renderLineNumber(number: number, isActive: boolean): string {
@@ -227,7 +237,9 @@ function applyRangeHighlightsToTokens(tokens: Token[], ranges: HighlightRange[])
  * Render a single line
  */
 export function renderLine(line: LineData, options: RenderOptions): string {
-  const classes: string[] = [...line.classes];
+  // Classes are caller data written into a class attribute: escape each entry so
+  // a quote cannot close the attribute.
+  const classes: string[] = line.classes.map((cls) => escapeHtml(cls));
   let diffMarker = '';
 
   // Check diff status
@@ -284,7 +296,8 @@ export function renderLine(line: LineData, options: RenderOptions): string {
 
   // Build attributes string
   const attrs = Object.entries(line.attributes)
-    .map(([key, value]) => `${key}="${value}"`)
+    .filter(([key]) => isSafeAttributeName(key))
+    .map(([key, value]) => `${key}="${escapeHtml(String(value))}"`)
     .join(' ');
 
   const attrString = attrs ? ` ${attrs}` : '';
