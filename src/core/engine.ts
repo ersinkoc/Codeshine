@@ -13,6 +13,7 @@ import type {
 } from './types.js';
 import type { LanguageDefinition } from '../languages/types.js';
 import { highlight as _highlight, highlightAsync as _highlightAsync, resolveTheme as _resolveTheme } from './highlighter.js';
+import { resolveChunkEnd } from './streaming.js';
 import { tokenize } from './tokenizer.js';
 import { parseTokensToLines } from './parser.js';
 import { render } from './renderer.js';
@@ -275,17 +276,29 @@ export class Codeshine implements CodeshineInstance {
       language: this.resolveLanguageName(code, options),
       autoDetect: false,
     };
+    const streamLanguage = streamOptions.language
+      ? this.languageRegistry.resolve(streamOptions.language)
+      : undefined;
 
     let processed = 0;
 
     while (processed < totalLines) {
-      const chunk = lines.slice(processed, processed + chunkSize).join('\n');
+      // Never end a chunk inside a block comment or a multi-line string: the next
+      // chunk is tokenized from a clean state, so the continuation would lose its
+      // token (and an unterminated literal would swallow the rest of the file).
+      const endLine = resolveChunkEnd(
+        lines,
+        processed,
+        Math.min(processed + chunkSize, totalLines),
+        streamLanguage
+      );
+      const chunk = lines.slice(processed, endLine).join('\n');
       const html = this.highlight(chunk, {
         ...streamOptions,
         startLine: (options.startLine ?? 1) + processed,
       });
 
-      processed += chunkSize;
+      processed = endLine;
       const progress = Math.min(100, Math.round((processed / totalLines) * 100));
 
       if (options.onChunk) {

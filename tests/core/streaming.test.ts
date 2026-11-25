@@ -34,6 +34,25 @@ const MIXED_DOC = [
   '</html>',
 ].join('\n');
 
+/**
+ * Token class + text sequence of rendered HTML.
+ * Line/wrapper spans contain nested spans, so `[^<]*` only matches leaf tokens;
+ * whitespace-only tokens are dropped because chunk boundaries regroup them.
+ */
+function tokenSignature(html: string): string[] {
+  const tokens: string[] = [];
+  const pattern = /<span class="cs-([a-z-]+)"[^>]*>([^<]*)<\/span>/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(html)) !== null) {
+    const cls = match[1] ?? '';
+    const text = match[2] ?? '';
+    if (cls === 'line' || cls === 'line-content' || cls === 'codeblock') continue;
+    if (text.trim() === '') continue;
+    tokens.push(`${cls}:${text}`);
+  }
+  return tokens;
+}
+
 describe('highlightStream', () => {
   it('should stream highlight in chunks', async () => {
     const code = 'line1\nline2\nline3\nline4\nline5';
@@ -124,6 +143,42 @@ describe('highlightStream', () => {
         offset += chunkSize;
       }
     }
+  });
+
+  it('should not split a block comment or template literal across chunks', async () => {
+    // Regression: each chunk was tokenized from a clean state, so a chunk that
+    // started inside a comment rendered it as identifiers, and an unterminated
+    // template literal turned the rest of the file into one string.
+    const code = [
+      'const a = 1;',
+      '/* header comment',
+      '   first line',
+      '   third line */',
+      'const b = 2;',
+      'const t = `alpha',
+      '  gamma`;',
+      'const c = 3;',
+    ].join('\n');
+    const whole = tokenSignature(highlight(code, { language: 'javascript' }));
+
+    for (const chunkSize of [1, 2, 3, 4, 5]) {
+      const chunks: string[] = [];
+      for await (const html of highlightStream(code, { language: 'javascript', chunkSize })) {
+        chunks.push(html);
+      }
+      expect(tokenSignature(chunks.join(''))).toEqual(whole);
+    }
+  });
+
+  it('should keep chunks independent after an unterminated multi-line construct', async () => {
+    const code = ['const a = `start', 'middle', 'const b = 2;'].join('\n');
+    const chunks: string[] = [];
+    for await (const html of highlightStream(code, { language: 'javascript', chunkSize: 1 })) {
+      chunks.push(html);
+    }
+    expect(tokenSignature(chunks.join(''))).toEqual(
+      tokenSignature(highlight(code, { language: 'javascript' }))
+    );
   });
 
   it('should resolve the language once for the class API too', async () => {

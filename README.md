@@ -270,6 +270,8 @@ for await (const chunk of createHighlightStream(largeCode, {
 
 With `autoDetect`, the language is detected once from the whole document before the first chunk and reused for every chunk, so a mixed-language document is never rendered with different languages in different chunks.
 
+A chunk never ends inside a block comment or a multi-line string: the last chunk is extended past `chunkSize` until that construct closes, so streamed output tokenizes exactly like a single `highlight()` call. A construct left open at the end of the file keeps the final chunk running to the last line.
+
 ### Auto Detection
 
 ```javascript

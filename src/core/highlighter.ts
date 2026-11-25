@@ -18,7 +18,7 @@ import type { LanguageDefinition } from '../languages/types.js';
 // Register tier1 languages by default
 let initialized = false;
 
-function ensureInitialized(): void {
+export function ensureInitialized(): void {
   if (initialized) return;
   initialized = true;
 

@@ -277,6 +277,11 @@ export interface Transformer {
  * With `autoDetect`, the language is detected once from the whole document
  * before the first chunk and reused for every chunk, so a document can never be
  * rendered with different languages in different chunks.
+ *
+ * A chunk never ends inside a block comment or a multi-line string: it is
+ * extended past `chunkSize` until the tokenizer state is closed, so streamed
+ * output matches a single `highlight()` call. A construct left open at the end
+ * of the input keeps the final chunk running to the last line.
  */
 export interface StreamOptions extends HighlightOptions {
   chunkSize?: number;
