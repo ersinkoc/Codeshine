@@ -8,6 +8,31 @@ import {
   highlightWithProgress,
   createStreamingHighlighter,
 } from '../../src/core/streaming.js';
+import { highlight } from '../../src/core/highlighter.js';
+import { Codeshine } from '../../src/core/engine.js';
+
+// A single HTML page whose script section looks like JavaScript on its own.
+const MIXED_DOC = [
+  '<!DOCTYPE html>',
+  '<html>',
+  '<head>',
+  '<title>Demo</title>',
+  '</head>',
+  '<body>',
+  '<div class="app" id="root"></div>',
+  '<script>',
+  'const total = 0;',
+  'let index = 1;',
+  'function add(x, y) { return x + y; }',
+  'console.log(add(index, total));',
+  'const doubled = total * 2;',
+  'let label = "sum";',
+  'console.log(doubled, label);',
+  'export default add;',
+  '</script>',
+  '</body>',
+  '</html>',
+].join('\n');
 
 describe('highlightStream', () => {
   it('should stream highlight in chunks', async () => {
@@ -65,6 +90,59 @@ describe('highlightStream', () => {
     }
 
     expect(progressValues[progressValues.length - 1]).toBe(100);
+  });
+
+  it('should use one detected language for every chunk', async () => {
+    // Regression: autoDetect ran per chunk, so one stream rendered this page as
+    // html, html, javascript, html.
+    const lines = MIXED_DOC.split('\n');
+    const index = { value: 0 };
+    const expected = () =>
+      highlight(lines.slice(index.value, index.value + 5).join('\n'), {
+        language: 'html',
+        startLine: index.value + 1,
+      });
+
+    for await (const html of highlightStream(MIXED_DOC, { autoDetect: true, chunkSize: 5 })) {
+      expect(html).toBe(expected());
+      index.value += 5;
+    }
+    expect(index.value).toBe(20);
+  });
+
+  it('should stay consistent for every chunk size', async () => {
+    for (const chunkSize of [1, 2, 3, 5, 7, 12]) {
+      const lines = MIXED_DOC.split('\n');
+      let offset = 0;
+      for await (const html of highlightStream(MIXED_DOC, { autoDetect: true, chunkSize })) {
+        expect(html).toBe(
+          highlight(lines.slice(offset, offset + chunkSize).join('\n'), {
+            language: 'html',
+            startLine: offset + 1,
+          })
+        );
+        offset += chunkSize;
+      }
+    }
+  });
+
+  it('should resolve the language once for the class API too', async () => {
+    const engine = new Codeshine({ defaultLanguage: 'javascript' });
+    const lines = MIXED_DOC.split('\n');
+
+    let offset = 0;
+    for await (const html of engine.highlightStream(MIXED_DOC, {
+      autoDetect: true,
+      chunkSize: 5,
+    })) {
+      expect(html).toBe(
+        highlight(lines.slice(offset, offset + 5).join('\n'), {
+          language: 'html',
+          startLine: offset + 1,
+        })
+      );
+      offset += 5;
+    }
   });
 });
 

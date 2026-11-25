@@ -268,13 +268,20 @@ export class Codeshine implements CodeshineInstance {
       Number.isFinite(requestedChunkSize) && requestedChunkSize > 0 ? requestedChunkSize : 100;
     const lines = code.split('\n');
     const totalLines = lines.length;
+    // Resolve the language once for the whole document: per-chunk detection let a
+    // mixed-language file render different chunks with different languages.
+    const streamOptions: HighlightOptions = {
+      ...options,
+      language: this.resolveLanguageName(code, options),
+      autoDetect: false,
+    };
 
     let processed = 0;
 
     while (processed < totalLines) {
       const chunk = lines.slice(processed, processed + chunkSize).join('\n');
       const html = this.highlight(chunk, {
-        ...options,
+        ...streamOptions,
         startLine: (options.startLine ?? 1) + processed,
       });
 

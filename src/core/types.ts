@@ -273,6 +273,10 @@ export interface Transformer {
 
 /**
  * Stream options for large files
+ *
+ * With `autoDetect`, the language is detected once from the whole document
+ * before the first chunk and reused for every chunk, so a document can never be
+ * rendered with different languages in different chunks.
  */
 export interface StreamOptions extends HighlightOptions {
   chunkSize?: number;

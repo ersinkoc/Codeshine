@@ -268,6 +268,8 @@ for await (const chunk of createHighlightStream(largeCode, {
 }
 ```
 
+With `autoDetect`, the language is detected once from the whole document before the first chunk and reused for every chunk, so a mixed-language document is never rendered with different languages in different chunks.
+
 ### Auto Detection
 
 ```javascript

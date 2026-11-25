@@ -4,6 +4,7 @@
 
 import type { StreamOptions, HighlightOptions } from './types.js';
 import { highlight } from './highlighter.js';
+import { detectLanguage } from './detector.js';
 
 /**
  * Default chunk size (lines)
@@ -21,6 +22,31 @@ function resolveChunkSize(chunkSize: number | undefined): number {
 }
 
 /**
+ * Resolve the streamed language once and freeze it for every chunk.
+ *
+ * `highlight()` detects on every call, so letting each chunk detect on its own
+ * rendered a mixed-language document chunk by chunk (proven: one stream emitted
+ * javascript for the first chunk and python for the rest). Detection now runs on
+ * the whole document, as it does for a non-streamed highlight, and `autoDetect`
+ * is switched off so a chunk can never override that decision.
+ */
+function freezeStreamLanguage(code: string, options: StreamOptions): HighlightOptions {
+  if (options.language !== undefined) {
+    return { ...options, autoDetect: false };
+  }
+
+  let language: string | undefined;
+  if (options.autoDetect) {
+    const detected = detectLanguage(code);
+    if (detected.language !== 'text' && detected.confidence > 0) {
+      language = detected.language;
+    }
+  }
+
+  return { ...options, language, autoDetect: false };
+}
+
+/**
  * Streaming highlight generator
  */
 export async function* highlightStream(
@@ -30,6 +56,7 @@ export async function* highlightStream(
   const chunkSize = resolveChunkSize(options.chunkSize);
   const lines = code.split('\n');
   const totalLines = lines.length;
+  const streamOptions = freezeStreamLanguage(code, options);
 
   let processed = 0;
   const startLine = options.startLine ?? 1;
@@ -39,7 +66,7 @@ export async function* highlightStream(
     const chunk = lines.slice(processed, endLine).join('\n');
 
     const chunkOptions: HighlightOptions = {
-      ...options,
+      ...streamOptions,
       startLine: startLine + processed,
     };
 
@@ -87,6 +114,7 @@ export function createStreamingHighlighter(options: StreamOptions = {}) {
       const chunkSize = resolveChunkSize(options.chunkSize);
       const lines = code.split('\n');
       const totalLines = lines.length;
+      const streamOptions = freezeStreamLanguage(code, options);
 
       let processed = 0;
       const startLine = options.startLine ?? 1;
@@ -103,7 +131,7 @@ export function createStreamingHighlighter(options: StreamOptions = {}) {
         const chunk = lines.slice(processed, endLine).join('\n');
 
         const chunkOptions: HighlightOptions = {
-          ...options,
+          ...streamOptions,
           startLine: startLine + processed,
         };
 
