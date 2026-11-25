@@ -5,22 +5,47 @@
 import type { LineRange } from '../core/types.js';
 
 /**
- * Parse a range string like "1,3-5,8" into an array of line numbers
+ * Maximum number of line numbers a single range normalisation produces.
+ *
+ * Range strings are public input (`highlightLines: '1-999999'`), so expanding
+ * `start..end` without a bound would let eleven characters ask for an
+ * arbitrarily large allocation. Highlighting more lines than this is not
+ * renderable anyway, so everything past the limit is ignored.
+ */
+export const MAX_RANGE_LINES = 1_000_000;
+
+/**
+ * Append the inclusive interval `start..end` to `target`, stopping at
+ * `MAX_RANGE_LINES` so expansion stays bounded.
+ */
+function appendRange(target: number[], start: number, end: number): void {
+  for (let i = start; i <= end && target.length < MAX_RANGE_LINES; i++) {
+    target.push(i);
+  }
+}
+
+/**
+ * Parse a range string like "1,3-5,8" into an array of line numbers.
+ *
+ * At most `MAX_RANGE_LINES` (1,000,000) line numbers are returned; parts that
+ * fall past the limit are ignored.
  */
 export function parseRangeString(range: string): number[] {
   const result: number[] = [];
   const parts = range.split(',').map((p) => p.trim());
 
   for (const part of parts) {
+    if (result.length >= MAX_RANGE_LINES) {
+      break;
+    }
+
     if (part.includes('-')) {
       const [startStr, endStr] = part.split('-');
       const start = parseInt(startStr ?? '', 10);
       const end = parseInt(endStr ?? '', 10);
 
       if (!isNaN(start) && !isNaN(end) && start <= end) {
-        for (let i = start; i <= end; i++) {
-          result.push(i);
-        }
+        appendRange(result, start, end);
       }
     } else {
       const num = parseInt(part, 10);
@@ -48,9 +73,7 @@ export function parseLineRange(range: LineRange): number[] {
   if (Array.isArray(range) && range.length === 2) {
     const [start, end] = range;
     const result: number[] = [];
-    for (let i = start; i <= end; i++) {
-      result.push(i);
-    }
+    appendRange(result, start, end);
     return result;
   }
 
@@ -71,7 +94,18 @@ export function parseLineRanges(ranges: LineRange[] | string | undefined): numbe
 
   const result: number[] = [];
   for (const range of ranges) {
-    result.push(...parseLineRange(range));
+    if (result.length >= MAX_RANGE_LINES) {
+      break;
+    }
+
+    // Push one number at a time: `push(...parsed)` overflows the call stack
+    // once a range expands past the engine's argument limit.
+    for (const line of parseLineRange(range)) {
+      if (result.length >= MAX_RANGE_LINES) {
+        break;
+      }
+      result.push(line);
+    }
   }
 
   return [...new Set(result)].sort((a, b) => a - b);

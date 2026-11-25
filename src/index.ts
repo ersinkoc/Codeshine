@@ -147,6 +147,7 @@ export {
   hash,
   hashHex,
   contentId,
+  MAX_RANGE_LINES,
   parseRangeString,
   parseLineRange,
   parseLineRanges,

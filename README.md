@@ -112,7 +112,7 @@ const html = highlight(code, {
   language: 'typescript',
   theme: themes.dracula,
   lineNumbers: true,
-  highlightLines: [2, 3],
+  highlightLines: [2, 3], // range strings ('1-5') expand to at most MAX_RANGE_LINES
   copyButton: true,
   showLanguageBadge: true,
   filename: 'example.ts'
@@ -252,6 +252,8 @@ const html = highlight(code, {
   focusLines: [3, 4, 5], // Dim everything except these
 });
 ```
+
+Range strings expand to at most `MAX_RANGE_LINES` (1,000,000) line numbers; entries past the limit are ignored, so a range taken from untrusted input cannot force an unbounded allocation.
 
 ### Streaming (Large Files)
 

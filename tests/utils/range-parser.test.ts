@@ -4,6 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import {
+  MAX_RANGE_LINES,
   parseRangeString,
   parseLineRange,
   parseLineRanges,
@@ -90,6 +91,31 @@ describe('parseLineRanges', () => {
   it('should merge and deduplicate', () => {
     const result = parseLineRanges([1, 2, [1, 3]]);
     expect(result).toEqual([1, 2, 3]);
+  });
+});
+
+describe('range expansion bound', () => {
+  it('should clamp oversized ranges to MAX_RANGE_LINES', () => {
+    expect(MAX_RANGE_LINES).toBe(1_000_000);
+
+    const stringRange = parseRangeString('1-5000000');
+    expect(stringRange).toHaveLength(MAX_RANGE_LINES);
+    expect(stringRange[0]).toBe(1);
+    expect(stringRange[stringRange.length - 1]).toBe(MAX_RANGE_LINES);
+
+    expect(parseLineRange([1, 5_000_000])).toHaveLength(MAX_RANGE_LINES);
+  });
+
+  it('should normalise large ranges without overflowing the call stack', () => {
+    expect(() => parseLineRanges(['1-500000'])).not.toThrow();
+    expect(parseLineRanges(['1-500000'])).toHaveLength(500_000);
+    expect(parseLineRanges(['1-2000000'])).toHaveLength(MAX_RANGE_LINES);
+  });
+
+  it('should ignore parts past the limit', () => {
+    expect(parseRangeString(`1-${MAX_RANGE_LINES},${MAX_RANGE_LINES + 5}`)).not.toContain(
+      MAX_RANGE_LINES + 5
+    );
   });
 });
 

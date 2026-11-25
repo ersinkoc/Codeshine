@@ -86,7 +86,15 @@ export interface HighlightOptions {
   // Line features
   lineNumbers?: boolean | undefined;
   startLine?: number | undefined;
+  /**
+   * Lines to highlight. Range strings expand to at most `MAX_RANGE_LINES`
+   * (1,000,000) line numbers.
+   */
   highlightLines?: LineRange[] | string | undefined;
+  /**
+   * Lines to focus (dim the rest). Range strings expand to at most
+   * `MAX_RANGE_LINES` (1,000,000) line numbers.
+   */
   focusLines?: LineRange[] | string | undefined;
   diffLines?: DiffLines | undefined;
 

@@ -6,6 +6,7 @@ export { escapeHtml, unescapeHtml, escapeRegExp } from './escape.js';
 export { deepMerge, mergeWithDefaults } from './merge.js';
 export { hash, hashHex, contentId } from './hash.js';
 export {
+  MAX_RANGE_LINES,
   parseRangeString,
   parseLineRange,
   parseLineRanges,
