@@ -9,14 +9,18 @@ import type {
   CodeshinePlugin,
   StreamOptions,
   CodeshineInstance,
+  Transformer,
 } from './types.js';
 import type { LanguageDefinition } from '../languages/types.js';
 import { highlight as _highlight, highlightAsync as _highlightAsync, resolveTheme as _resolveTheme } from './highlighter.js';
 import { tokenize } from './tokenizer.js';
 import { parseTokensToLines } from './parser.js';
 import { render } from './renderer.js';
+import { detectLanguage } from './detector.js';
 import { toRenderOptions } from '../renderers/types.js';
 import { parseLineRanges } from '../utils/range-parser.js';
+import { expandTabs } from '../utils/tabs.js';
+import { createTransformerPipeline } from '../plugins/transformer.js';
 import {
   createLanguageRegistry,
   tier1Languages,
@@ -36,6 +40,7 @@ export class Codeshine implements CodeshineInstance {
   private currentTheme: Theme;
   private defaultLanguage: string | undefined;
   private plugins: CodeshinePlugin[] = [];
+  private transformers: Transformer[] = [];
 
   constructor(options: CodeshineOptions = {}) {
     // Initialize with tier 1 languages
@@ -106,8 +111,19 @@ export class Codeshine implements CodeshineInstance {
       }
     }
 
+    // Per-call and plugin transformers run at every stage of the pipeline
+    const pipeline = createTransformerPipeline();
+    for (const transformer of this.transformers) {
+      pipeline.add(transformer);
+    }
+    for (const transformer of processedOptions.transformers ?? []) {
+      pipeline.add(transformer);
+    }
+
+    processedCode = pipeline.runPre(expandTabs(processedCode, processedOptions.tabSize));
+
     // Resolve language
-    const langName = processedOptions.language ?? this.defaultLanguage;
+    const langName = this.resolveLanguageName(processedCode, processedOptions);
     const language = langName ? this.languageRegistry.resolve(langName) : undefined;
 
     // Resolve theme
@@ -116,11 +132,13 @@ export class Codeshine implements CodeshineInstance {
       : this.currentTheme;
 
     if (!language) {
-      return this.renderPlainText(processedCode, theme, processedOptions);
+      return pipeline.runPost(
+        this.renderPlainText(processedCode, theme, processedOptions, pipeline)
+      );
     }
 
     // Tokenize
-    let tokens = tokenize(processedCode, language);
+    let tokens = pipeline.runTokens(tokenize(processedCode, language));
 
     // Apply plugin token processing
     for (const plugin of this.plugins) {
@@ -148,12 +166,12 @@ export class Codeshine implements CodeshineInstance {
       }
     }
 
-    // Parse the plugin-processed tokens to lines
-    const lines = parseTokensToLines(processedTokens);
+    // Parse the plugin-processed tokens to lines, letting line transformers adjust them
+    const lines = parseTokensToLines(processedTokens).map((line) => pipeline.runLine(line));
 
     // Render
     const renderOptions = toRenderOptions(processedOptions, theme, parsedLines);
-    let html = render(lines, renderOptions);
+    let html = pipeline.runPost(render(lines, renderOptions));
 
     // Apply plugin after render
     for (const plugin of this.plugins) {
@@ -171,7 +189,8 @@ export class Codeshine implements CodeshineInstance {
   private renderPlainText(
     code: string,
     theme: Theme,
-    options: HighlightOptions
+    options: HighlightOptions,
+    pipeline: ReturnType<typeof createTransformerPipeline>
   ): string {
     const lines = code.split('\n').map((content, index) => ({
       number: index + 1,
@@ -200,7 +219,28 @@ export class Codeshine implements CodeshineInstance {
     };
 
     const renderOptions = toRenderOptions(options, theme, parsedLines);
-    return render(lines, renderOptions);
+    return render(
+      lines.map((line) => pipeline.runLine(line)),
+      renderOptions
+    );
+  }
+
+  /**
+   * Resolve the language name, falling back to detection for `autoDetect`
+   */
+  private resolveLanguageName(code: string, options: HighlightOptions): string | undefined {
+    if (options.language) {
+      return options.language;
+    }
+
+    if (options.autoDetect) {
+      const detected = detectLanguage(code);
+      if (detected.language !== 'text' && detected.confidence > 0) {
+        return detected.language;
+      }
+    }
+
+    return this.defaultLanguage;
   }
 
   /**
@@ -298,6 +338,13 @@ export class Codeshine implements CodeshineInstance {
     if (plugin.themes) {
       for (const theme of plugin.themes) {
         this.themeRegistry.register(theme);
+      }
+    }
+
+    // Register plugin transformers
+    if (plugin.transformers) {
+      for (const transformer of plugin.transformers) {
+        this.transformers.push(transformer);
       }
     }
 

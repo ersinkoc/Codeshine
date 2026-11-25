@@ -13,3 +13,4 @@ export {
   toRangeString,
 } from './range-parser.js';
 export { classnames, bemClass } from './classnames.js';
+export { expandTabs } from './tabs.js';

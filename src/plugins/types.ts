@@ -32,6 +32,7 @@ export interface TransformerPipeline {
   runToken(
     token: import('../core/types.js').Token
   ): import('../core/types.js').Token | import('../core/types.js').Token[] | null;
+  runTokens(tokens: import('../core/types.js').Token[]): import('../core/types.js').Token[];
   runLine(line: import('../core/types.js').LineData): import('../core/types.js').LineData;
   runPost(html: string): string;
 }

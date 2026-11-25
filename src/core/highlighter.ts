@@ -2,12 +2,15 @@
  * Main highlight function for Codeshine
  */
 
-import type { HighlightOptions, Theme, DiffLines } from './types.js';
+import type { HighlightOptions, Theme, DiffLines, Transformer } from './types.js';
 import { tokenize } from './tokenizer.js';
 import { parseTokensToLines } from './parser.js';
 import { render } from './renderer.js';
+import { detectLanguage } from './detector.js';
 import { toRenderOptions } from '../renderers/types.js';
 import { parseLineRanges } from '../utils/range-parser.js';
+import { expandTabs } from '../utils/tabs.js';
+import { createTransformerPipeline } from '../plugins/transformer.js';
 import { getLanguage, registerLanguage as regLang, tier1Languages } from '../languages/index.js';
 import { getTheme, registerTheme as regTheme, githubDark, allThemes } from '../themes/index.js';
 import type { LanguageDefinition } from '../languages/types.js';
@@ -75,6 +78,43 @@ function parseDiffLines(diff: DiffLines | undefined): {
 }
 
 /**
+ * Build a transformer pipeline from the per-call `transformers` option.
+ */
+function createPipeline(transformers: Transformer[] | undefined) {
+  const pipeline = createTransformerPipeline();
+
+  for (const transformer of transformers ?? []) {
+    pipeline.add(transformer);
+  }
+
+  return pipeline;
+}
+
+/**
+ * Resolve the language, falling back to detection when `autoDetect` is set.
+ */
+function resolveLanguageForHighlight(
+  code: string,
+  options: HighlightOptions
+): LanguageDefinition | undefined {
+  const explicit = resolveLanguage(options.language);
+  if (explicit) {
+    return explicit;
+  }
+
+  if (!options.autoDetect) {
+    return undefined;
+  }
+
+  const detected = detectLanguage(code);
+  if (detected.language === 'text' || detected.confidence <= 0) {
+    return undefined;
+  }
+
+  return getLanguage(detected.language);
+}
+
+/**
  * Main highlight function
  */
 export function highlight(code: string, options: HighlightOptions = {}): string {
@@ -83,18 +123,22 @@ export function highlight(code: string, options: HighlightOptions = {}): string 
   // Resolve theme
   const theme = resolveTheme(options.theme);
 
+  // Transformers run at every stage of the pipeline
+  const pipeline = createPipeline(options.transformers);
+  const source = pipeline.runPre(expandTabs(code, options.tabSize));
+
   // Resolve language
-  const language = resolveLanguage(options.language);
+  const language = resolveLanguageForHighlight(source, options);
   if (!language) {
     // Return plain text with basic formatting
-    return renderPlainText(code, theme, options);
+    return pipeline.runPost(renderPlainText(source, theme, options, pipeline));
   }
 
   // Tokenize
-  const tokens = tokenize(code, language);
+  const tokens = pipeline.runTokens(tokenize(source, language));
 
-  // Parse to lines
-  const lines = parseTokensToLines(tokens);
+  // Parse to lines, letting line transformers adjust them
+  const lines = parseTokensToLines(tokens).map((line) => pipeline.runLine(line));
 
   // Parse line ranges
   const parsedLines = {
@@ -107,13 +151,18 @@ export function highlight(code: string, options: HighlightOptions = {}): string 
   const renderOptions = toRenderOptions(options, theme, parsedLines);
 
   // Render
-  return render(lines, renderOptions);
+  return pipeline.runPost(render(lines, renderOptions));
 }
 
 /**
  * Render plain text when no language is specified
  */
-function renderPlainText(code: string, theme: Theme, options: HighlightOptions): string {
+function renderPlainText(
+  code: string,
+  theme: Theme,
+  options: HighlightOptions,
+  pipeline: ReturnType<typeof createTransformerPipeline>
+): string {
   const lines = code.split('\n').map((content, index) => ({
     number: index + 1,
     content,
@@ -138,7 +187,10 @@ function renderPlainText(code: string, theme: Theme, options: HighlightOptions):
 
   const renderOptions = toRenderOptions(options, theme, parsedLines);
 
-  return render(lines, renderOptions);
+  return render(
+    lines.map((line) => pipeline.runLine(line)),
+    renderOptions
+  );
 }
 
 /**

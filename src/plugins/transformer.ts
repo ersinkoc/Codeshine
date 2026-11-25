@@ -62,6 +62,24 @@ export function createTransformerPipeline(): TransformerPipeline {
       return result;
     },
 
+    runTokens(tokens: Token[]): Token[] {
+      const result: Token[] = [];
+
+      for (const token of tokens) {
+        const transformed = this.runToken(token);
+        if (transformed === null) {
+          continue;
+        }
+        if (Array.isArray(transformed)) {
+          result.push(...transformed);
+        } else {
+          result.push(transformed);
+        }
+      }
+
+      return result;
+    },
+
     runLine(line: LineData): LineData {
       let result = line;
       for (const transformer of transformers) {
