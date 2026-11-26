@@ -16,9 +16,6 @@ export const markdown = defineLang({
     // Headers
     { pattern: /^#{1,6}\s+.+$/m, type: 'keyword' },
 
-    // Fenced code blocks (with language)
-    { pattern: /```[\w]*[\s\S]*?```/, type: 'string' },
-
     // Inline code
     { pattern: /`[^`\n]+`/, type: 'string' },
 
@@ -79,7 +76,16 @@ export const markdown = defineLang({
     { pattern: /\$[^$\n]+\$/, type: 'string' },
   ],
 
-  strings: [],
+  // Fenced code blocks are a multi-line construct. Patterns are matched
+  // against a single line, so a fence written across lines can only be tracked
+  // through the tokenizer's multi-line string state.
+  strings: [
+    {
+      start: '```',
+      end: '```',
+      multiline: true,
+    },
+  ],
 
   comments: {},
 
