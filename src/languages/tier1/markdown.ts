@@ -69,20 +69,22 @@ export const markdown = defineLang({
     // Footnotes
     { pattern: /\[\^[^\]]+\]/, type: 'meta' },
 
-    // Math blocks (for extended markdown)
-    { pattern: /\$\$[\s\S]*?\$\$/, type: 'string' },
-
     // Inline math
     { pattern: /\$[^$\n]+\$/, type: 'string' },
   ],
 
-  // Fenced code blocks are a multi-line construct. Patterns are matched
-  // against a single line, so a fence written across lines can only be tracked
-  // through the tokenizer's multi-line string state.
+  // Fenced code blocks and `$$` display math are multi-line constructs.
+  // Patterns are matched against a single line, so a construct written across
+  // lines can only be tracked through the tokenizer's multi-line string state.
   strings: [
     {
       start: '```',
       end: '```',
+      multiline: true,
+    },
+    {
+      start: '$$',
+      end: '$$',
       multiline: true,
     },
   ],
