@@ -31,13 +31,8 @@ export const jsx = extendLang(javascript, {
     { pattern: /\{\.\.\.[\w.]+\}/, type: 'operator' },
   ],
 
-  embeddedLanguages: [
-    {
-      language: 'javascript',
-      start: /\{/,
-      end: /\}/,
-    },
-  ],
+  // JSX expressions (`{…}`) are already tokenized with the JavaScript base
+  // language this definition extends, so no embedded region is needed.
 });
 
 export default jsx;

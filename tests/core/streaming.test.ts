@@ -7,8 +7,10 @@ import {
   highlightStream,
   highlightWithProgress,
   createStreamingHighlighter,
+  resolveChunkEnd,
 } from '../../src/core/streaming.js';
-import { highlight } from '../../src/core/highlighter.js';
+import { highlight, ensureInitialized } from '../../src/core/highlighter.js';
+import { getLanguage } from '../../src/languages/index.js';
 import { Codeshine } from '../../src/core/engine.js';
 
 // A single HTML page whose script section looks like JavaScript on its own.
@@ -51,6 +53,24 @@ function tokenSignature(html: string): string[] {
     tokens.push(`${cls}:${text}`);
   }
   return tokens;
+}
+
+/**
+ * Chunk ranges the stream produces: a chunk never ends inside a multi-line
+ * construct (block comment, template literal, embedded `<script>`/`<style>`),
+ * so it can run past `chunkSize`.
+ */
+function chunkRanges(lines: string[], chunkSize: number): Array<[number, number]> {
+  ensureInitialized();
+  const language = getLanguage('html');
+  const ranges: Array<[number, number]> = [];
+  let start = 0;
+  while (start < lines.length) {
+    const end = resolveChunkEnd(lines, start, Math.min(start + chunkSize, lines.length), language);
+    ranges.push([start, end]);
+    start = end;
+  }
+  return ranges;
 }
 
 describe('highlightStream', () => {
@@ -115,33 +135,44 @@ describe('highlightStream', () => {
     // Regression: autoDetect ran per chunk, so one stream rendered this page as
     // html, html, javascript, html.
     const lines = MIXED_DOC.split('\n');
-    const index = { value: 0 };
-    const expected = () =>
-      highlight(lines.slice(index.value, index.value + 5).join('\n'), {
-        language: 'html',
-        startLine: index.value + 1,
-      });
+    const ranges = chunkRanges(lines, 5);
+    const chunks: string[] = [];
 
     for await (const html of highlightStream(MIXED_DOC, { autoDetect: true, chunkSize: 5 })) {
-      expect(html).toBe(expected());
-      index.value += 5;
+      chunks.push(html);
     }
-    expect(index.value).toBe(20);
+
+    expect(chunks).toHaveLength(ranges.length);
+    ranges.forEach(([start, end], i) => {
+      expect(chunks[i]).toBe(
+        highlight(lines.slice(start, end).join('\n'), {
+          language: 'html',
+          startLine: start + 1,
+        })
+      );
+    });
+    expect(ranges[ranges.length - 1]?.[1]).toBe(lines.length);
   });
 
   it('should stay consistent for every chunk size', async () => {
     for (const chunkSize of [1, 2, 3, 5, 7, 12]) {
       const lines = MIXED_DOC.split('\n');
-      let offset = 0;
+      const ranges = chunkRanges(lines, chunkSize);
+      const chunks: string[] = [];
+
       for await (const html of highlightStream(MIXED_DOC, { autoDetect: true, chunkSize })) {
-        expect(html).toBe(
-          highlight(lines.slice(offset, offset + chunkSize).join('\n'), {
+        chunks.push(html);
+      }
+
+      expect(chunks).toHaveLength(ranges.length);
+      ranges.forEach(([start, end], i) => {
+        expect(chunks[i]).toBe(
+          highlight(lines.slice(start, end).join('\n'), {
             language: 'html',
-            startLine: offset + 1,
+            startLine: start + 1,
           })
         );
-        offset += chunkSize;
-      }
+      });
     }
   });
 
@@ -184,20 +215,25 @@ describe('highlightStream', () => {
   it('should resolve the language once for the class API too', async () => {
     const engine = new Codeshine({ defaultLanguage: 'javascript' });
     const lines = MIXED_DOC.split('\n');
+    const ranges = chunkRanges(lines, 5);
+    const chunks: string[] = [];
 
-    let offset = 0;
     for await (const html of engine.highlightStream(MIXED_DOC, {
       autoDetect: true,
       chunkSize: 5,
     })) {
-      expect(html).toBe(
-        highlight(lines.slice(offset, offset + 5).join('\n'), {
+      chunks.push(html);
+    }
+
+    expect(chunks).toHaveLength(ranges.length);
+    ranges.forEach(([start, end], i) => {
+      expect(chunks[i]).toBe(
+        highlight(lines.slice(start, end).join('\n'), {
           language: 'html',
-          startLine: offset + 1,
+          startLine: start + 1,
         })
       );
-      offset += 5;
-    }
+    });
   });
 });
 

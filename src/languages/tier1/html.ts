@@ -3,6 +3,15 @@
  */
 
 import { defineLang } from '../define-lang.js';
+import { registerLanguage } from '../registry.js';
+import { javascript } from './javascript.js';
+import { css } from './css.js';
+
+// The embedded regions below name their language by string, so the tokenizer
+// resolves them through the registry. Registering them here keeps
+// `tokenize(code, html)` working without the highlighter's tier-1 registration.
+registerLanguage(javascript);
+registerLanguage(css);
 
 export const html = defineLang({
   name: 'html',
@@ -61,13 +70,13 @@ export const html = defineLang({
   embeddedLanguages: [
     {
       language: 'javascript',
-      start: /<script[^>]*>/i,
-      end: /<\/script>/i,
+      start: /<script\b[^>]*>/i,
+      end: /<\/script\s*>/i,
     },
     {
       language: 'css',
-      start: /<style[^>]*>/i,
-      end: /<\/style>/i,
+      start: /<style\b[^>]*>/i,
+      end: /<\/style\s*>/i,
     },
   ],
 });

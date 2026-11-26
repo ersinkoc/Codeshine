@@ -64,7 +64,12 @@ function resolveStreamLanguage(options: HighlightOptions): LanguageDefinition | 
  * Is the tokenizer still inside a construct that continues on the next line?
  */
 function isOpenState(state: TokenizerState): boolean {
-  return state.inString === true || state.inComment === true || state.inTemplate === true;
+  return (
+    state.inString === true ||
+    state.inComment === true ||
+    state.inTemplate === true ||
+    state.embeddedLanguage !== undefined
+  );
 }
 
 /**

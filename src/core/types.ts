@@ -238,6 +238,7 @@ export interface TokenizerState {
   templateDepth?: number;
   inRegex?: boolean;
   embeddedLanguage?: string | undefined;
+  embeddedState?: TokenizerState | undefined;
   bracketStack?: string[];
 }
 

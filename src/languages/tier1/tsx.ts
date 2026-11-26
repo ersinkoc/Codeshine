@@ -34,13 +34,8 @@ export const tsx = extendLang(typescript, {
     { pattern: /<[A-Z][\w]*>(?=\()/, type: 'type' },
   ],
 
-  embeddedLanguages: [
-    {
-      language: 'typescript',
-      start: /\{/,
-      end: /\}/,
-    },
-  ],
+  // TSX expressions (`{…}`) are already tokenized with the TypeScript base
+  // language this definition extends, so no embedded region is needed.
 });
 
 export default tsx;

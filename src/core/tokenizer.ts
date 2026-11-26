@@ -3,8 +3,13 @@
  */
 
 import type { Token, TokenType, TokenizerState, TokenizeResult } from './types.js';
-import type { LanguageDefinition, StringDefinition } from '../languages/types.js';
-import { escapeRegExp as _escapeRegExp } from '../utils/escape.js';
+import type {
+  EmbeddedLanguage,
+  LanguageDefinition,
+  StringDefinition,
+} from '../languages/types.js';
+import { getLanguage } from '../languages/registry.js';
+import { escapeRegExp } from '../utils/escape.js';
 
 /**
  * Default tokenizer state
@@ -90,6 +95,33 @@ function findStringStart(
 }
 
 /**
+ * An embedded delimiter may be declared as a string or a RegExp.
+ */
+function toRegExp(delimiter: RegExp | string): RegExp {
+  return delimiter instanceof RegExp ? delimiter : new RegExp(escapeRegExp(delimiter));
+}
+
+/**
+ * Find an embedded language region starting at position
+ */
+function findEmbeddedStart(
+  line: string,
+  pos: number,
+  language: LanguageDefinition
+): { def: EmbeddedLanguage; text: string } | null {
+  const defs = language.embeddedLanguages;
+  if (!defs || defs.length === 0) return null;
+
+  for (const def of defs) {
+    const match = line.slice(pos).match(toRegExp(def.start));
+    if (match && match.index === 0) {
+      return { def, text: match[0] };
+    }
+  }
+  return null;
+}
+
+/**
  * Check if position is at string end
  */
 function isStringEnd(
@@ -126,6 +158,62 @@ export function tokenizeLine(
       tokens.push(createToken('plain', value, start, lineNumber));
     }
   };
+
+  /**
+   * Tokenize the current embedded language region from `pos`.
+   *
+   * Returns true when the host's end delimiter closed the region (the host loop
+   * resumes at `pos`), false when the rest of the line belongs to the region.
+   */
+  const processEmbeddedRegion = (): boolean => {
+    const embedded = getLanguage(currentState.embeddedLanguage ?? '');
+    const embeddedDef = language.embeddedLanguages?.find(
+      (def) => def.language === currentState.embeddedLanguage
+    );
+
+    if (!embedded || !embeddedDef) {
+      // A declaration whose definition was never loaded: fall back to the host.
+      currentState.embeddedLanguage = undefined;
+      currentState.embeddedState = undefined;
+      return true;
+    }
+
+    const rest = line.slice(pos);
+    const endMatch = rest.match(toRegExp(embeddedDef.end));
+    const segmentLength = endMatch && endMatch.index !== undefined ? endMatch.index : rest.length;
+    const segment = rest.slice(0, segmentLength);
+    const innerState = currentState.embeddedState ?? createDefaultState();
+
+    if (segment.length > 0) {
+      const result = tokenizeLine(segment, lineNumber, embedded, innerState);
+      for (const token of result.tokens) {
+        tokens.push({
+          ...token,
+          start: token.start + pos,
+          end: token.end + pos,
+        });
+      }
+      currentState.embeddedState = result.state;
+    } else {
+      currentState.embeddedState = innerState;
+    }
+
+    pos += segmentLength;
+
+    if (endMatch) {
+      // The host's end delimiter closes the region; the host resumes here.
+      currentState.embeddedLanguage = undefined;
+      currentState.embeddedState = undefined;
+      return true;
+    }
+
+    return false;
+  };
+
+  // Process an embedded language region that started on a previous line
+  if (currentState.embeddedLanguage && !processEmbeddedRegion()) {
+    return { tokens, state: currentState };
+  }
 
   // Process block comment continuation
   if (currentState.inComment && currentState.commentType === 'block') {
@@ -324,6 +412,19 @@ export function tokenizeLine(
         currentState.inString = true;
         currentState.stringDelimiter = startStr;
         break;
+      }
+      continue;
+    }
+
+    // Check for an embedded language region start (e.g. <script> in HTML)
+    const embeddedStart = findEmbeddedStart(line, pos, language);
+    if (embeddedStart) {
+      tokens.push(createToken('tag', embeddedStart.text, pos, lineNumber));
+      pos += embeddedStart.text.length;
+      currentState.embeddedLanguage = embeddedStart.def.language;
+      currentState.embeddedState = createDefaultState();
+      if (!processEmbeddedRegion()) {
+        return { tokens, state: currentState };
       }
       continue;
     }
