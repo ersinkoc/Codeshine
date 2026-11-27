@@ -122,8 +122,8 @@ export const typescript = defineLang({
     // Optional chaining and nullish coalescing
     { pattern: /\?\.|::|!\./, type: 'operator' },
 
-    // Property access (after dot)
-    { pattern: /(?<=\.)[a-zA-Z_$][\w$]*/, type: 'property' },
+    // Property access (after dot); a called member is a call, not a property
+    { pattern: /(?<=\.)[a-zA-Z_$][\w$]*(?!\s*\()/, type: 'property' },
 
     // Function call
     { pattern: /\b[a-zA-Z_$][\w$]*(?=\s*[<(])/, type: 'function' },

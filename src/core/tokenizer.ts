@@ -112,6 +112,68 @@ function findStringStart(
 }
 
 /**
+ * Sticky clones of lookbehind-first custom patterns, keyed by the declaration.
+ *
+ * A lookbehind asserts on the text just before the match, so those patterns
+ * must be evaluated against the whole line: `line.slice(pos)` removes the very
+ * characters the lookbehind needs to see, which makes every lookbehind-first
+ * rule unmatchable. The clone is sticky (`y`) so it is still anchored at `pos`.
+ */
+const stickyPatterns = new WeakMap<RegExp, RegExp>();
+
+/**
+ * Characters that continue an identifier.
+ */
+function isIdentifierChar(char: string): boolean {
+  return char !== '' && /[A-Za-z0-9_$]/.test(char);
+}
+
+/**
+ * Whether a match ends in the middle of an identifier.
+ *
+ * A greedy word class followed by a negative lookahead can backtrack out of
+ * the lookahead's failure: `/\w+(?!\s*\()/` on `a.field()` matches `fiel`,
+ * because the lookahead then sees `d`. Accepting that match splits one
+ * identifier across two tokens, so the match is left to the next rule (or to
+ * the identifier fallback), which consumes the whole word.
+ */
+function splitsIdentifier(line: string, pos: number, text: string): boolean {
+  if (text.length === 0) return false;
+  return (
+    isIdentifierChar(text.charAt(text.length - 1)) &&
+    isIdentifierChar(line.charAt(pos + text.length))
+  );
+}
+
+/**
+ * Match a custom pattern at `pos`, preserving lookbehind context.
+ *
+ * Patterns that do not start with a lookbehind keep the historical slice path,
+ * so `^`-anchored and lookahead-only rules behave exactly as before.
+ */
+function matchPatternAt(line: string, pos: number, pattern: RegExp): string | null {
+  let text: string;
+
+  if (!/^\(\?<[=!]/.test(pattern.source)) {
+    const match = line.slice(pos).match(pattern);
+    if (!match || match.index !== 0) return null;
+    text = match[0];
+  } else {
+    let sticky = stickyPatterns.get(pattern);
+    if (!sticky) {
+      sticky = new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, '') + 'y');
+      stickyPatterns.set(pattern, sticky);
+    }
+    sticky.lastIndex = pos;
+    const match = sticky.exec(line);
+    if (!match) return null;
+    text = match[0];
+  }
+
+  return splitsIdentifier(line, pos, text) ? null : text;
+}
+
+/**
  * An embedded delimiter may be declared as a string or a RegExp.
  */
 function toRegExp(delimiter: RegExp | string): RegExp {
@@ -468,10 +530,10 @@ export function tokenizeLine(
 
     // Check custom patterns
     for (const pattern of language.patterns) {
-      const match = line.slice(pos).match(pattern.pattern);
-      if (match && match.index === 0) {
-        tokens.push(createToken(pattern.type, match[0], pos, lineNumber, pattern.scopes));
-        pos += match[0].length;
+      const text = matchPatternAt(line, pos, pattern.pattern);
+      if (text) {
+        tokens.push(createToken(pattern.type, text, pos, lineNumber, pattern.scopes));
+        pos += text.length;
         matched = true;
         break;
       }
