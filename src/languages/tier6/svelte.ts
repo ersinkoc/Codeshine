@@ -85,10 +85,21 @@ export const svelte = defineLang({
     { open: '<', close: '>' },
   ],
   embedded: [
-    { language: 'javascript', start: '<script>', end: '</script>' },
-    { language: 'typescript', start: '<script lang="ts">', end: '</script>' },
-    { language: 'css', start: '<style>', end: '</style>' },
-    { language: 'scss', start: '<style lang="scss">', end: '</style>' },
+    // Real SFC script tags carry attributes (`<script setup>`,
+    // `<script setup lang="ts">`, `<script lang='ts'>`), so the delimiters are
+    // patterns; the typed variant is listed first so it wins over plain JS.
+    {
+      language: 'typescript',
+      start: /<script\b[^>]*\blang\s*=\s*["']ts["'][^>]*>/i,
+      end: /<\/script\s*>/i,
+    },
+    { language: 'javascript', start: /<script\b[^>]*>/i, end: /<\/script\s*>/i },
+    {
+      language: 'scss',
+      start: /<style\b[^>]*\blang\s*=\s*["']scss["'][^>]*>/i,
+      end: /<\/style\s*>/i,
+    },
+    { language: 'css', start: /<style\b[^>]*>/i, end: /<\/style\s*>/i },
   ],
 });
 
