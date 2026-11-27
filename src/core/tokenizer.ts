@@ -181,6 +181,17 @@ function toRegExp(delimiter: RegExp | string): RegExp {
 }
 
 /**
+ * Embedded region declarations of a language.
+ *
+ * `embedded` is the older spelling of the same field; several definitions
+ * (vue, svelte, handlebars) still declare their regions there, so both must be
+ * honoured. `embeddedLanguages` wins when a language declares both.
+ */
+function embeddedDefinitions(language: LanguageDefinition): EmbeddedLanguage[] {
+  return language.embeddedLanguages ?? language.embedded ?? [];
+}
+
+/**
  * Find an embedded language region starting at position
  */
 function findEmbeddedStart(
@@ -188,11 +199,14 @@ function findEmbeddedStart(
   pos: number,
   language: LanguageDefinition
 ): { def: EmbeddedLanguage; text: string } | null {
-  const defs = language.embeddedLanguages;
-  if (!defs || defs.length === 0) return null;
+  for (const def of embeddedDefinitions(language)) {
+    const start = toRegExp(def.start);
+    // A delimiter that matches the empty string cannot delimit a region
+    // (handlebars declares `{ language: 'html', start: '', end: '' }\`);
+    // accepting it would open a region at every position.
+    if (start.test('')) continue;
 
-  for (const def of defs) {
-    const match = line.slice(pos).match(toRegExp(def.start));
+    const match = line.slice(pos).match(start);
     if (match && match.index === 0) {
       return { def, text: match[0] };
     }
@@ -246,7 +260,7 @@ export function tokenizeLine(
    */
   const processEmbeddedRegion = (): boolean => {
     const embedded = getLanguage(currentState.embeddedLanguage ?? '');
-    const embeddedDef = language.embeddedLanguages?.find(
+    const embeddedDef = embeddedDefinitions(language).find(
       (def) => def.language === currentState.embeddedLanguage
     );
 

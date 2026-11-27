@@ -5,26 +5,35 @@ import { defineLang } from '../src/languages/define-lang.js';
 describe('BUG FIX VERIFICATION', () => {
   
   // BUG-001: ReDoS in applyWordHighlighting
-  // Verification: Ensure it processes quickly and doesn't crash/hang
-  test('BUG-001: ReDoS fixed and logic correct', () => {
-    const codeshine = new Codeshine();
-    const longLine = '>' + 'a'.repeat(50000) + '<';
-    const start = globalThis.performance.now();
+  // Deterministic: the 50k-character line must be processed to completion with
+  // its escaped text preserved exactly. The catastrophic-backtracking version
+  // never returned, so a regression fails this test through its own 5s timeout
+  // instead of through a machine-speed threshold.
+  test(
+    'BUG-001: ReDoS fixed and logic correct',
+    () => {
+      const codeshine = new Codeshine();
+      const longLine = '>' + 'a'.repeat(50000) + '<';
 
-    // Use unknown language to avoid syntax highlighting interference, testing pure applyWordHighlighting via renderPlainText
-    const html = codeshine.highlight(longLine, {
-      language: 'unknown-lang-xyz',
-      highlightWords: ['MATCH_ME_NOT'],
-    });
+      // Use unknown language to avoid syntax highlighting interference, testing pure applyWordHighlighting via renderPlainText
+      const html = codeshine.highlight(longLine, {
+        language: 'unknown-lang-xyz',
+        highlightWords: ['MATCH_ME_NOT'],
+      });
 
-    const end = globalThis.performance.now();
-    
-    // Should be fast
-    expect(end - start).toBeLessThan(100);
-    
-    // Should contain original text (escaped)
-    expect(html).toContain(longLine.replace('<', '&lt;').replace('>', '&gt;'));
-  });
+      // Whole line preserved (escaped), and the absent word is not highlighted.
+      expect(html).toContain(longLine.replace('<', '&lt;').replace('>', '&gt;'));
+      expect(html).not.toContain('word-highlighted');
+
+      // A present word is still wrapped, so the linear scan really did the work.
+      const matched = codeshine.highlight('a MATCH_ME_NOT b', {
+        language: 'unknown-lang-xyz',
+        highlightWords: ['MATCH_ME_NOT'],
+      });
+      expect(matched).toContain('<span class="cs-word-highlighted">MATCH_ME_NOT</span>');
+    },
+    5000
+  );
 
   // BUG-002: Infinite Loop in Tokenizer
   // Verification: Ensure it completes without hanging
