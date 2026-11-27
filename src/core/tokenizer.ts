@@ -181,6 +181,14 @@ function toRegExp(delimiter: RegExp | string): RegExp {
 }
 
 /**
+ * Index of the first match of an end delimiter in `text`, or -1.
+ */
+function matchEndDelimiter(text: string, end: RegExp): number {
+  const match = text.match(end);
+  return match && match.index !== undefined ? match.index : -1;
+}
+
+/**
  * Embedded region declarations of a language.
  *
  * `embedded` is the older spelling of the same field; several definitions
@@ -212,6 +220,115 @@ function findEmbeddedStart(
     }
   }
   return null;
+}
+
+/**
+ * Sticky clones of delimiters tested at one position (`matchesAt`). Kept apart
+ * from `stickyPatterns`, which exists to preserve lookbehinds.
+ */
+const anchoredPatterns = new WeakMap<RegExp, RegExp>();
+
+/**
+ * Whether `pattern` matches exactly at `pos`.
+ */
+function matchesAt(text: string, pos: number, pattern: RegExp): boolean {
+  let sticky = anchoredPatterns.get(pattern);
+  if (!sticky) {
+    sticky = new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, '') + 'y');
+    anchoredPatterns.set(pattern, sticky);
+  }
+  sticky.lastIndex = pos;
+  return sticky.test(text);
+}
+
+/**
+ * Characters that terminate the "script" temp buffer of the double escape
+ * start / end states (WHATWG HTML §13.2.5.26, §13.2.5.31).
+ */
+const SCRIPT_TAG_DELIMITER = /[\t\n\f />]/;
+
+/**
+ * Whether `<script` or `</script` (case-insensitive) is followed by a delimiter
+ * at `pos`. The end of the line counts as a delimiter: the tokenizer splits on
+ * newlines, and a line break is one of the characters in the spec's set.
+ */
+function isScriptTagAt(
+  text: string,
+  pos: number,
+  prefix: '<script' | '</script'
+): boolean {
+  if (text.slice(pos, pos + prefix.length).toLowerCase() !== prefix) return false;
+  const after = text.charAt(pos + prefix.length);
+  return after === '' || SCRIPT_TAG_DELIMITER.test(after);
+}
+
+/**
+ * Find where the host's end delimiter closes a `<script>` region, honouring the
+ * HTML script-data escape states (WHATWG HTML §13.2.5):
+ *
+ *   script data         -- `<!--`              --> escaped
+ *                       -- `</script` + delim --> closes the element
+ *   script data escaped -- `-->`               --> script data
+ *                       -- `<script` + delim   --> double escaped
+ *                       -- `</script` + delim  --> closes the element
+ *   script data double  -- `-->`               --> script data
+ *     escaped           -- `</script` + delim  --> escaped (not a close)
+ *
+ * The HTML tokenizer works on raw text, so these sequences count inside
+ * JavaScript strings and comments too. `state.scriptEscape` carries the state
+ * across lines. Returns the index of the closing delimiter, or -1 when the rest
+ * of the line is script text.
+ */
+function scanScriptEnd(text: string, state: TokenizerState, end: RegExp): number {
+  let escape = state.scriptEscape;
+  let pos = 0;
+
+  while (pos < text.length) {
+    const char = text[pos];
+
+    if (escape === 'double-escaped') {
+      if (char === '-' && text.startsWith('-->', pos)) {
+        escape = undefined;
+        pos += 3;
+      } else if (char === '<' && isScriptTagAt(text, pos, '</script')) {
+        escape = 'escaped';
+        pos += '</script'.length;
+      } else {
+        pos++;
+      }
+      continue;
+    }
+
+    if (escape === 'escaped') {
+      if (char === '-' && text.startsWith('-->', pos)) {
+        escape = undefined;
+        pos += 3;
+      } else if (char === '<' && matchesAt(text, pos, end)) {
+        state.scriptEscape = escape;
+        return pos;
+      } else if (char === '<' && isScriptTagAt(text, pos, '<script')) {
+        escape = 'double-escaped';
+        pos += '<script'.length;
+      } else {
+        pos++;
+      }
+      continue;
+    }
+
+    if (char === '<' && matchesAt(text, pos, end)) {
+      state.scriptEscape = undefined;
+      return pos;
+    }
+    if (char === '<' && text.startsWith('<!--', pos)) {
+      escape = 'escaped';
+      pos += '<!--'.length;
+      continue;
+    }
+    pos++;
+  }
+
+  state.scriptEscape = escape;
+  return -1;
 }
 
 /**
@@ -272,10 +389,16 @@ export function tokenizeLine(
     }
 
     const rest = line.slice(pos);
-    const endMatch = rest.match(toRegExp(embeddedDef.end));
-    const segmentLength = endMatch && endMatch.index !== undefined ? endMatch.index : rest.length;
-    const segment = rest.slice(0, segmentLength);
     const innerState = currentState.embeddedState ?? createDefaultState();
+    const endDelimiter = toRegExp(embeddedDef.end);
+    // A `<script>` region is HTML script text, where comment-like text can hide
+    // an inner `</script>` (§13.2.5); every other region, including vue and
+    // svelte script blocks, ends at the first delimiter.
+    const endIndex = embeddedDef.scriptEscapeStates
+      ? scanScriptEnd(rest, innerState, endDelimiter)
+      : matchEndDelimiter(rest, endDelimiter);
+    const segmentLength = endIndex === -1 ? rest.length : endIndex;
+    const segment = rest.slice(0, segmentLength);
 
     if (segment.length > 0) {
       const result = tokenizeLine(segment, lineNumber, embedded, innerState);
@@ -293,7 +416,7 @@ export function tokenizeLine(
 
     pos += segmentLength;
 
-    if (endMatch) {
+    if (endIndex !== -1) {
       // The host's end delimiter closes the region; the host resumes here.
       currentState.embeddedLanguage = undefined;
       currentState.embeddedState = undefined;

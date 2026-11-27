@@ -239,6 +239,11 @@ export interface TokenizerState {
   inRegex?: boolean;
   embeddedLanguage?: string | undefined;
   embeddedState?: TokenizerState | undefined;
+  /**
+   * HTML script-data escape state (`<!--` and `<script>` in script text).
+   * Lives on the embedded language's state and clears with the region.
+   */
+  scriptEscape?: 'escaped' | 'double-escaped' | undefined;
   bracketStack?: string[];
 }
 

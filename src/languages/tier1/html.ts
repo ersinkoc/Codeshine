@@ -72,6 +72,10 @@ export const html = defineLang({
       language: 'javascript',
       start: /<script\b[^>]*>/i,
       end: /<\/script\s*>/i,
+      // The HTML tokenizer reads script text verbatim, so `<!-- ... <script>`
+      // can hide a `</script>`; vue/svelte compilers do not, and keep the
+      // default first-delimiter behaviour.
+      scriptEscapeStates: true,
     },
     {
       language: 'css',

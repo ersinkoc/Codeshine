@@ -54,6 +54,13 @@ export interface EmbeddedLanguage {
   language: string;
   start: RegExp | string;
   end: RegExp | string;
+  /**
+   * Treat the region as HTML script text, applying the script-data escape
+   * states of WHATWG HTML §13.2.5: `<!--` hides an inner `</script>` until
+   * `-->` ends the comment-like text. Only html's `<script>` region declares
+   * it; vue and svelte compilers end their script block at the first delimiter.
+   */
+  scriptEscapeStates?: boolean;
 }
 
 /**
