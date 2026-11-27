@@ -89,6 +89,10 @@ export const swift = defineLang({
     'didSet',
   ],
 
+  // Contextual keywords: accessors and the async modifier stay valid
+  // identifiers, so a call to `get(`, `set(` or `async(` is a call.
+  contextualKeywords: ['async', 'get', 'set'],
+
   typeKeywords: [
     'Any',
     'AnyObject',

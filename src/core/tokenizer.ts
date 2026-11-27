@@ -70,6 +70,23 @@ function matchKeyword(
 }
 
 /**
+ * Whether a word is a declared contextual keyword that is being called.
+ *
+ * `get`, `set`, `async`, `of` and `from` are keywords only in specific
+ * positions; as identifiers they stay callable, so a call belongs to the
+ * language's call pattern rather than to the keyword rule.
+ */
+function isContextualCall(
+  word: string,
+  pos: number,
+  line: string,
+  contextualKeywords: string[] | undefined
+): boolean {
+  if (!contextualKeywords?.includes(word)) return false;
+  return /^\s*\(/.test(line.slice(pos + word.length));
+}
+
+/**
  * Find string definition that matches at position
  */
 function findStringStart(
@@ -427,6 +444,26 @@ export function tokenizeLine(
         return { tokens, state: currentState };
       }
       continue;
+    }
+
+    // Declared reserved words take precedence over identifier-shaped patterns:
+    // the javascript "Function call" pattern would otherwise type `if (`,
+    // `for (` and `while (` as functions. A word after a dot is member access
+    // (`promise.catch(fn)`), and a contextual keyword that is called (`get(`,
+    // `of(`, `async(`) is an ordinary callable identifier, so keywords do not
+    // win in either case.
+    if (line[pos - 1] !== '.') {
+      const wordMatch = line.slice(pos).match(/^[a-zA-Z_$][a-zA-Z0-9_$]*/);
+      const word = wordMatch?.[0];
+      const keywordType =
+        word && !isContextualCall(word, pos, line, language.contextualKeywords)
+          ? matchKeyword(word, language.keywords, language.typeKeywords, language.constants)
+          : null;
+      if (word && keywordType) {
+        tokens.push(createToken(keywordType, word, pos, lineNumber));
+        pos += word.length;
+        continue;
+      }
     }
 
     // Check custom patterns

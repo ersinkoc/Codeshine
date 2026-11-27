@@ -67,6 +67,12 @@ export interface LanguageDefinition {
 
   // Token rules
   keywords?: string[];
+  /**
+   * Keywords that are contextual rather than reserved: valid identifiers that
+   * are highlighted as keywords in their keyword positions (`get x()`,
+   * `for (const x of xs)`) but are callable names when followed by `(`.
+   */
+  contextualKeywords?: string[];
   typeKeywords?: string[];
   constants?: string[];
   builtins?: string[];

@@ -88,6 +88,10 @@ export const csharp = defineLang({
     'required',
   ],
 
+  // Contextual keywords used as accessors/modifiers; a call to `get(`, `set(`
+  // or `async(` is an ordinary method call.
+  contextualKeywords: ['async', 'get', 'set'],
+
   typeKeywords: [
     'bool',
     'byte',

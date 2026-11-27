@@ -74,6 +74,10 @@ export const typescript = defineLang({
     'set',
   ],
 
+  // Contextual keywords: highlighted as keywords, still valid identifiers and
+  // callable names (`get(key)`, `of(x)`, `async(fn)`).
+  contextualKeywords: ['async', 'of', 'from', 'get', 'set'],
+
   typeKeywords: [
     'any',
     'boolean',

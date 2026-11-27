@@ -61,6 +61,10 @@ export const javascript = defineLang({
     'set',
   ],
 
+  // Contextual keywords: highlighted as keywords, still valid identifiers and
+  // callable names (`get(key)`, `of(x)`, `async(fn)`).
+  contextualKeywords: ['async', 'of', 'from', 'get', 'set'],
+
   constants: ['true', 'false', 'null', 'undefined', 'NaN', 'Infinity'],
 
   operators: /[+\-*/%&|^!<>=?:~]+|&&|\|\||\?\?|\.\.\./,
